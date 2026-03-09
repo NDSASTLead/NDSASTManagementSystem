@@ -66,7 +66,7 @@ In Supabase, go to **Settings → API**. You'll need these in Steps 5 and 6:
 
    ```bash
    git clone <your-repo-url>
-   cd NDSRevolution/maintenance-tracker
+   cd NDSASTManagementSystem
    ```
 
 2. **Install dependencies**
@@ -119,7 +119,7 @@ If you haven't already, push the project to a GitHub repository.
 2. Click **Add New → Project**
 3. Import your GitHub repository
 4. When prompted to configure the project:
-   - Set **Root Directory** to `maintenance-tracker`
+   - Leave **Root Directory** blank (app is at repo root)
    - Framework will be detected as **Next.js** automatically
 
 ### 6c — Add environment variables
