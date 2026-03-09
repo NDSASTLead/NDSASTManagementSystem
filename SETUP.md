@@ -38,6 +38,8 @@ In your Supabase project, go to **SQL Editor** and run these files **in order**.
    | **Site URL** | `http://localhost:3000` (update to Vercel URL after deploy) |
    | **Redirect URLs** | Add `http://localhost:3000/**` |
 
+> 💡 **Two-project setup (recommended):** Use a separate Supabase project for local dev and production. Each project only needs the redirect URL for its own environment — local gets `http://localhost:3000/**`, production gets your Vercel URL (added in Step 6e).
+
 ---
 
 ## Step 4: Get Your API Keys
