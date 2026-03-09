@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import type { TaskWithRelations } from '@/lib/supabase/types'
+import { getDisplayName } from '@/lib/utils'
 
 export default async function TasksPage({
   searchParams,
@@ -23,7 +24,7 @@ export default async function TasksPage({
 
   let query = supabase
     .from('tasks')
-    .select('*, site:sites(short_name), building:buildings(name), assigned_profile:profiles!tasks_assigned_to_fkey(full_name)')
+    .select('*, site:sites(short_name), building:buildings(name), assigned_profile:profiles!tasks_assigned_to_fkey(full_name, display_name)')
     .neq('status', 'cancelled')
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
@@ -108,7 +109,7 @@ export default async function TasksPage({
                   <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
                     <span>{task.site?.short_name}{task.building && ` · ${task.building.name}`}</span>
                     {task.assigned_profile && (
-                      <span className="text-gray-400">→ {task.assigned_profile.full_name}</span>
+                      <span className="text-gray-400">→ {getDisplayName(task.assigned_profile)}</span>
                     )}
                     {task.due_date && (
                       <span className={isOverdue ? 'text-red-600 font-medium' : 'text-gray-400'}>

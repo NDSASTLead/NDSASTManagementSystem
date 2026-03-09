@@ -12,6 +12,7 @@ export interface Profile {
   id: string
   full_name: string
   display_name: string | null
+  profile_picture_path: string | null
   email: string
   phone: string | null
   whatsapp_opt_in: boolean

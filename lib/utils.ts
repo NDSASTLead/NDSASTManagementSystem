@@ -62,3 +62,20 @@ export async function compressImage(
     img.src = url
   })
 }
+
+/**
+ * Returns the display name for a profile, falling back to full_name.
+ */
+export function getDisplayName(profile: { full_name: string; display_name: string | null }): string {
+  return profile.display_name ?? profile.full_name
+}
+
+/**
+ * Returns the public URL for a profile picture, or null if none set.
+ */
+export function getProfilePictureUrl(path: string | null | undefined): string | null {
+  if (!path) return null
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL
+  if (!base) return null
+  return `${base}/storage/v1/object/public/profile-pictures/${path}`
+}

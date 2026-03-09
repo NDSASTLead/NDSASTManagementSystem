@@ -5,7 +5,9 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { MobileNav } from '@/components/layout/MobileNav'
+import { Avatar } from '@/components/shared/Avatar'
 import { Toaster } from '@/components/ui/sonner'
+import { getDisplayName } from '@/lib/utils'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -16,16 +18,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const profile = await getCurrentProfile()
   if (!profile) redirect('/login')
 
-  const initials = profile.full_name
-    .split(' ')
-    .map((n: string) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
+  const displayName = getDisplayName(profile)
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <Sidebar role={profile.role} fullName={profile.full_name} />
+      <Sidebar role={profile.role} displayName={displayName} picturePath={profile.profile_picture_path} />
 
       <main className="flex-1 flex flex-col min-w-0">
         {/* Mobile header */}
@@ -41,11 +38,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           >
             <HelpCircle className="w-5 h-5" />
           </Link>
-          <Link
-            href="/account"
-            className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0"
-          >
-            <span className="text-purple-700 font-semibold text-xs">{initials}</span>
+          <Link href="/account" className="flex-shrink-0">
+            <Avatar name={displayName} picturePath={profile.profile_picture_path} size="sm" />
           </Link>
         </div>
 

@@ -1,6 +1,9 @@
 import { redirect } from 'next/navigation'
 import { User, Shield, Mail, Phone } from 'lucide-react'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
+import { Avatar } from '@/components/shared/Avatar'
+import { AccountEditForm } from '@/components/account/AccountEditForm'
+import { getDisplayName } from '@/lib/utils'
 
 const roleLabel: Record<string, string> = {
   volunteer: 'Volunteer',
@@ -13,25 +16,27 @@ export default async function AccountPage() {
   const profile = await getCurrentProfile()
   if (!profile) redirect('/login')
 
-  const initials = profile.full_name
-    .split(' ')
-    .map(n => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
+  const displayName = getDisplayName(profile)
 
   return (
     <div className="max-w-lg mx-auto px-4 py-8 space-y-8 pb-24 md:pb-8">
 
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="w-14 h-14 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-          <span className="text-purple-700 font-bold text-xl">{initials}</span>
-        </div>
+        <Avatar name={displayName} picturePath={profile.profile_picture_path} size="lg" />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{profile.full_name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
+          {profile.display_name && (
+            <p className="text-sm text-gray-400">{profile.full_name}</p>
+          )}
           <p className="text-sm text-gray-500">{roleLabel[profile.role] ?? profile.role}</p>
         </div>
+      </div>
+
+      {/* Edit form */}
+      <div className="bg-white border border-gray-200 rounded-xl p-5">
+        <h2 className="text-sm font-semibold text-gray-900 mb-4">Edit profile</h2>
+        <AccountEditForm profile={profile} />
       </div>
 
       {/* Details */}

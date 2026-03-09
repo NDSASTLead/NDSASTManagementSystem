@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
 import { getSignedUrls } from '@/lib/actions/attachments'
 import { redirect, notFound } from 'next/navigation'
@@ -12,6 +12,7 @@ import { TaskEditButton } from '@/components/tasks/TaskEditButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MapPin, Calendar, User, Tag } from 'lucide-react'
 import type { TaskWithRelations, TaskCommentWithAuthor, TaskAttachment } from '@/lib/supabase/types'
+import { getDisplayName } from '@/lib/utils'
 
 export default async function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -26,8 +27,8 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
       site:sites(id, name, short_name),
       building:buildings(id, name),
       category:asset_categories(id, name),
-      assigned_profile:profiles!tasks_assigned_to_fkey(id, full_name, email),
-      created_profile:profiles!tasks_created_by_fkey(id, full_name)
+      assigned_profile:profiles!tasks_assigned_to_fkey(id, full_name, display_name, profile_picture_path, email),
+      created_profile:profiles!tasks_created_by_fkey(id, full_name, display_name)
     `)
     .eq('id', id)
     .single()
@@ -36,7 +37,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
 
   const { data: comments } = await supabase
     .from('task_comments')
-    .select('*, author:profiles(id, full_name)')
+    .select('*, author:profiles(id, full_name, display_name, profile_picture_path)')
     .eq('task_id', id)
     .order('created_at', { ascending: true })
 
@@ -58,11 +59,11 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   const typedComments = (comments ?? []) as TaskCommentWithAuthor[]
 
   // Get all profiles for assignment (ast_lead only)
-  let assignableProfiles: { id: string; full_name: string }[] = []
+  let assignableProfiles: { id: string; full_name: string; display_name: string | null }[] = []
   if (profile.role === 'ast_lead') {
     const { data } = await supabase
       .from('profiles')
-      .select('id, full_name')
+      .select('id, full_name, display_name')
       .eq('is_active', true)
       .in('role', ['volunteer', 'owner', 'ast_lead'])
       .order('full_name')
@@ -184,7 +185,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
           {typedTask.assigned_profile && (
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
-              <span>Assigned to: {typedTask.assigned_profile.full_name}</span>
+              <span>Assigned to: {getDisplayName(typedTask.assigned_profile)}</span>
             </div>
           )}
 

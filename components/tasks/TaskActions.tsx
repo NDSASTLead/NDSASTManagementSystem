@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useTransition } from 'react'
 import { updateTaskStatus, assignTask } from '@/lib/actions/tasks'
@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
 import type { TaskWithRelations, Profile, TaskStatus } from '@/lib/supabase/types'
+import { getDisplayName } from '@/lib/utils'
 
 interface Props {
   task: TaskWithRelations
   currentProfile: Profile
-  assignableProfiles: { id: string; full_name: string }[]
+  assignableProfiles: { id: string; full_name: string; display_name: string | null }[]
 }
 
 interface PendingAction {
@@ -72,14 +73,14 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
     })
   }
 
-  // ── Action definitions ──────────────────────────────────────────────────
+  // â”€â”€ Action definitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   function startAction(): PendingAction {
     return {
       label: "Mark as in progress",
       confirmLabel: "Start task",
       colour: 'blue',
-      commentPlaceholder: "e.g. Started work on this today — need to order a part first.",
+      commentPlaceholder: "e.g. Started work on this today â€” need to order a part first.",
       onConfirm: async (c) => {
         const result = await updateTaskStatus(task.id, 'in_progress', c)
         if (result?.error) toast.error(result.error)
@@ -93,7 +94,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Put on hold",
       confirmLabel: "Put on hold",
       colour: 'orange',
-      commentPlaceholder: "e.g. Waiting for parts — will resume next week.",
+      commentPlaceholder: "e.g. Waiting for parts â€” will resume next week.",
       onConfirm: async (c) => {
         const result = await updateTaskStatus(task.id, 'assigned', c)
         if (result?.error) toast.error(result.error)
@@ -107,7 +108,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Mark as complete",
       confirmLabel: "Mark complete",
       colour: 'green',
-      commentPlaceholder: "e.g. Fixed the latch. Replaced the hinge — parts cost £12 from Screwfix.",
+      commentPlaceholder: "e.g. Fixed the latch. Replaced the hinge â€” parts cost Â£12 from Screwfix.",
       onConfirm: async (c) => {
         const newStatus: TaskStatus = isAstLead ? 'complete' : 'pending_review'
         const result = await updateTaskStatus(task.id, newStatus, c, c)
@@ -122,7 +123,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Sign off as complete",
       confirmLabel: "Sign off",
       colour: 'green',
-      commentPlaceholder: "e.g. Checked and confirmed — good to go.",
+      commentPlaceholder: "e.g. Checked and confirmed â€” good to go.",
       onConfirm: async (c) => {
         const result = await updateTaskStatus(task.id, 'complete', c)
         if (result?.error) toast.error(result.error)
@@ -136,7 +137,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Send back for rework",
       confirmLabel: "Send back",
       colour: 'orange',
-      commentPlaceholder: "e.g. The repair isn't holding — please revisit and re-tighten the fittings.",
+      commentPlaceholder: "e.g. The repair isn't holding â€” please revisit and re-tighten the fittings.",
       onConfirm: async (c) => {
         const result = await updateTaskStatus(task.id, 'in_progress', c)
         if (result?.error) toast.error(result.error)
@@ -150,7 +151,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Cancel this task",
       confirmLabel: "Cancel task",
       colour: 'red',
-      commentPlaceholder: "e.g. No longer required — issue resolved another way.",
+      commentPlaceholder: "e.g. No longer required â€” issue resolved another way.",
       onConfirm: async (c) => {
         const result = await updateTaskStatus(task.id, 'cancelled', c)
         if (result?.error) toast.error(result.error)
@@ -167,8 +168,8 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       confirmLabel: assigneeId ? 'Assign' : 'Unassign',
       colour: 'purple',
       commentPlaceholder: assigneeId
-        ? `e.g. ${assigneeName} has the skills for this — please action by Friday.`
-        : "e.g. Removing assignment — will reassign once available.",
+        ? `e.g. ${assigneeName} has the skills for this â€” please action by Friday.`
+        : "e.g. Removing assignment â€” will reassign once available.",
       onConfirm: async (c) => {
         const result = await assignTask(task.id, assigneeId, c)
         if (result?.error) toast.error(result.error)
@@ -177,7 +178,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
     }
   }
 
-  // ── Confirm panel ───────────────────────────────────────────────────────
+  // â”€â”€ Confirm panel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   if (pendingAction) {
     const colours = COLOUR_MAP[pendingAction.colour]
@@ -209,7 +210,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
                 disabled={!comment.trim() || isPending}
                 onClick={confirmAction}
               >
-                {isPending ? 'Saving…' : pendingAction.confirmLabel}
+                {isPending ? 'Savingâ€¦' : pendingAction.confirmLabel}
               </Button>
               <Button
                 variant="ghost"
@@ -226,7 +227,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
     )
   }
 
-  // ── Normal actions view ─────────────────────────────────────────────────
+  // â”€â”€ Normal actions view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   return (
     <Card>
@@ -235,7 +236,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       </CardHeader>
       <CardContent className="space-y-4">
 
-        {/* Assignment — ast_lead only */}
+        {/* Assignment â€” ast_lead only */}
         {isAstLead && (
           <div>
             <p className="text-sm font-medium text-gray-700 mb-1.5">Assign to</p>
@@ -243,7 +244,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               value={task.assigned_to ?? 'unassigned'}
               onValueChange={(val) => {
                 const assigneeId = val === 'unassigned' ? null : val
-                const assigneeName = assignableProfiles.find(p => p.id === val)?.full_name ?? ''
+                const assignee = assignableProfiles.find(p => p.id === val); const assigneeName = assignee ? getDisplayName(assignee) : ''
                 openAction(assignAction(assigneeId, assigneeName))
               }}
               disabled={isPending}
@@ -252,9 +253,9 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
                 <SelectValue placeholder="Choose a person" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="unassigned">— Unassigned —</SelectItem>
+                <SelectItem value="unassigned">â€” Unassigned â€”</SelectItem>
                 {assignableProfiles.map(p => (
-                  <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+                  <SelectItem key={p.id} value={p.id}>{getDisplayName(p)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -265,7 +266,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
         {canAct && (
           <div className="flex flex-col gap-2">
 
-            {/* open or assigned → in_progress */}
+            {/* open or assigned â†’ in_progress */}
             {(task.status === 'open' || task.status === 'assigned') && (
               <Button
                 variant="outline"
@@ -277,7 +278,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               </Button>
             )}
 
-            {/* in_progress → put on hold (back to assigned) */}
+            {/* in_progress â†’ put on hold (back to assigned) */}
             {task.status === 'in_progress' && isAstLead && (
               <Button
                 variant="outline"
@@ -289,7 +290,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               </Button>
             )}
 
-            {/* in_progress → complete / pending_review */}
+            {/* in_progress â†’ complete / pending_review */}
             {(task.status === 'assigned' || task.status === 'in_progress') && (
               <Button
                 className="h-11 text-base bg-green-600 hover:bg-green-700"
@@ -300,7 +301,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               </Button>
             )}
 
-            {/* pending_review → complete (ast_lead sign-off) */}
+            {/* pending_review â†’ complete (ast_lead sign-off) */}
             {isAstLead && task.status === 'pending_review' && (
               <Button
                 className="h-11 text-base bg-green-600 hover:bg-green-700"
@@ -311,7 +312,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               </Button>
             )}
 
-            {/* pending_review → in_progress (send back) */}
+            {/* pending_review â†’ in_progress (send back) */}
             {isAstLead && task.status === 'pending_review' && (
               <Button
                 variant="outline"
@@ -323,7 +324,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               </Button>
             )}
 
-            {/* Cancel — ast_lead only */}
+            {/* Cancel â€” ast_lead only */}
             {isAstLead && (
               <Button
                 variant="ghost"

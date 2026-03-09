@@ -4,7 +4,9 @@ import { useState, useTransition } from 'react'
 import { addComment } from '@/lib/actions/tasks'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Avatar } from '@/components/shared/Avatar'
 import { toast } from 'sonner'
+import { getDisplayName } from '@/lib/utils'
 import type { TaskCommentWithAuthor, Profile } from '@/lib/supabase/types'
 
 interface Props {
@@ -40,6 +42,11 @@ export function TaskComments({ taskId, comments, currentProfile }: Props) {
         <div className="space-y-3">
           {comments.map(comment => {
             const isOwn = comment.author_id === currentProfile.id
+            const authorName = isOwn
+              ? getDisplayName(currentProfile)
+              : comment.author
+                ? getDisplayName(comment.author)
+                : 'Someone'
             return (
               <div key={comment.id} className={`rounded-lg px-4 py-3 text-sm ${
                 comment.is_internal
@@ -47,9 +54,16 @@ export function TaskComments({ taskId, comments, currentProfile }: Props) {
                   : 'bg-gray-50 border border-gray-100'
               }`}>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="font-medium text-gray-800">
-                    {isOwn ? 'You' : (comment.author?.full_name ?? 'Someone')}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <Avatar
+                      name={authorName}
+                      picturePath={isOwn ? currentProfile.profile_picture_path : comment.author?.profile_picture_path}
+                      size="xs"
+                    />
+                    <span className="font-medium text-gray-800">
+                      {isOwn ? 'You' : authorName}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2">
                     {comment.is_internal && (
                       <span className="text-xs text-purple-600 font-medium">Internal note</span>

@@ -9,14 +9,16 @@ import {
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { Avatar } from '@/components/shared/Avatar'
 import type { Role } from '@/lib/supabase/types'
 
 interface SidebarProps {
   role: Role
-  fullName: string
+  displayName: string
+  picturePath?: string | null
 }
 
-export function Sidebar({ role, fullName }: SidebarProps) {
+export function Sidebar({ role, displayName, picturePath }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
 
@@ -75,13 +77,9 @@ export function Sidebar({ role, fullName }: SidebarProps) {
           href="/account"
           className="flex items-center gap-3 px-3 py-2 mb-2 rounded-lg hover:bg-gray-800 transition-colors group"
         >
-          <div className="w-7 h-7 bg-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-semibold text-xs">
-              {fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)}
-            </span>
-          </div>
+          <Avatar name={displayName} picturePath={picturePath} size="sm" className="ring-2 ring-purple-500" />
           <div className="min-w-0">
-            <p className="text-sm font-medium text-white truncate group-hover:text-purple-200 transition-colors">{fullName}</p>
+            <p className="text-sm font-medium text-white truncate group-hover:text-purple-200 transition-colors">{displayName}</p>
             <p className="text-xs text-gray-400 capitalize">{role.replace('_', ' ')}</p>
           </div>
         </Link>
