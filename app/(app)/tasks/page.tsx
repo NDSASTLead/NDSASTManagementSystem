@@ -8,6 +8,7 @@ import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import type { TaskWithRelations } from '@/lib/supabase/types'
 import { getDisplayName } from '@/lib/utils'
+import { Avatar } from '@/components/shared/Avatar'
 
 export default async function TasksPage({
   searchParams,
@@ -24,7 +25,7 @@ export default async function TasksPage({
 
   let query = supabase
     .from('tasks')
-    .select('*, site:sites(short_name), building:buildings(name), assigned_profile:profiles!tasks_assigned_to_fkey(full_name, display_name)')
+    .select('*, site:sites(short_name), building:buildings(name), assigned_profile:profiles!tasks_assigned_to_fkey(full_name, display_name, profile_picture_path)')
     .neq('status', 'cancelled')
     .order('due_date', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
@@ -109,7 +110,14 @@ export default async function TasksPage({
                   <div className="flex items-center gap-3 mt-1 text-sm text-gray-500">
                     <span>{task.site?.short_name}{task.building && ` · ${task.building.name}`}</span>
                     {task.assigned_profile && (
-                      <span className="text-gray-400">→ {getDisplayName(task.assigned_profile)}</span>
+                      <span className="flex items-center gap-1.5 text-gray-400">
+                          <Avatar
+                            size="xs"
+                            name={getDisplayName(task.assigned_profile)}
+                            picturePath={task.assigned_profile.profile_picture_path}
+                          />
+                          {getDisplayName(task.assigned_profile)}
+                        </span>
                     )}
                     {task.due_date && (
                       <span className={isOverdue ? 'text-red-600 font-medium' : 'text-gray-400'}>

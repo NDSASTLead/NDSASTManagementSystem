@@ -80,7 +80,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Mark as in progress",
       confirmLabel: "Start task",
       colour: 'blue',
-      commentPlaceholder: "e.g. Started work on this today â€” need to order a part first.",
+      commentPlaceholder: "e.g. Started work on this today — need to order a part first.",
       onConfirm: async (c) => {
         const result = await updateTaskStatus(task.id, 'in_progress', c)
         if (result?.error) toast.error(result.error)
@@ -94,7 +94,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Put on hold",
       confirmLabel: "Put on hold",
       colour: 'orange',
-      commentPlaceholder: "e.g. Waiting for parts â€” will resume next week.",
+      commentPlaceholder: "e.g. Waiting for parts — will resume next week.",
       onConfirm: async (c) => {
         const result = await updateTaskStatus(task.id, 'assigned', c)
         if (result?.error) toast.error(result.error)
@@ -108,7 +108,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Mark as complete",
       confirmLabel: "Mark complete",
       colour: 'green',
-      commentPlaceholder: "e.g. Fixed the latch. Replaced the hinge â€” parts cost Â£12 from Screwfix.",
+      commentPlaceholder: "e.g. Fixed the latch. Replaced the hinge — parts cost £12 from Screwfix.",
       onConfirm: async (c) => {
         const newStatus: TaskStatus = isAstLead ? 'complete' : 'pending_review'
         const result = await updateTaskStatus(task.id, newStatus, c, c)
@@ -123,7 +123,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Sign off as complete",
       confirmLabel: "Sign off",
       colour: 'green',
-      commentPlaceholder: "e.g. Checked and confirmed â€” good to go.",
+      commentPlaceholder: "e.g. Checked and confirmed — good to go.",
       onConfirm: async (c) => {
         const result = await updateTaskStatus(task.id, 'complete', c)
         if (result?.error) toast.error(result.error)
@@ -137,7 +137,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Send back for rework",
       confirmLabel: "Send back",
       colour: 'orange',
-      commentPlaceholder: "e.g. The repair isn't holding â€” please revisit and re-tighten the fittings.",
+      commentPlaceholder: "e.g. The repair isn't holding — please revisit and re-tighten the fittings.",
       onConfirm: async (c) => {
         const result = await updateTaskStatus(task.id, 'in_progress', c)
         if (result?.error) toast.error(result.error)
@@ -151,7 +151,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       label: "Cancel this task",
       confirmLabel: "Cancel task",
       colour: 'red',
-      commentPlaceholder: "e.g. No longer required â€” issue resolved another way.",
+      commentPlaceholder: "e.g. No longer required — issue resolved another way.",
       onConfirm: async (c) => {
         const result = await updateTaskStatus(task.id, 'cancelled', c)
         if (result?.error) toast.error(result.error)
@@ -168,8 +168,8 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       confirmLabel: assigneeId ? 'Assign' : 'Unassign',
       colour: 'purple',
       commentPlaceholder: assigneeId
-        ? `e.g. ${assigneeName} has the skills for this â€” please action by Friday.`
-        : "e.g. Removing assignment â€” will reassign once available.",
+        ? `e.g. ${assigneeName} has the skills for this — please action by Friday.`
+        : "e.g. Removing assignment — will reassign once available.",
       onConfirm: async (c) => {
         const result = await assignTask(task.id, assigneeId, c)
         if (result?.error) toast.error(result.error)
@@ -210,7 +210,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
                 disabled={!comment.trim() || isPending}
                 onClick={confirmAction}
               >
-                {isPending ? 'Savingâ€¦' : pendingAction.confirmLabel}
+                {isPending ? 'Saving…' : pendingAction.confirmLabel}
               </Button>
               <Button
                 variant="ghost"
@@ -236,7 +236,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
       </CardHeader>
       <CardContent className="space-y-4">
 
-        {/* Assignment â€” ast_lead only */}
+        {/* Assignment — ast_lead only */}
         {isAstLead && (
           <div>
             <p className="text-sm font-medium text-gray-700 mb-1.5">Assign to</p>
@@ -253,7 +253,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
                 <SelectValue placeholder="Choose a person" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="unassigned">â€” Unassigned â€”</SelectItem>
+                <SelectItem value="unassigned">— Unassigned —</SelectItem>
                 {assignableProfiles.map(p => (
                   <SelectItem key={p.id} value={p.id}>{getDisplayName(p)}</SelectItem>
                 ))}
@@ -324,7 +324,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               </Button>
             )}
 
-            {/* Cancel â€” ast_lead only */}
+            {/* Cancel — ast_lead only */}
             {isAstLead && (
               <Button
                 variant="ghost"
