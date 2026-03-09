@@ -1,7 +1,11 @@
-# NDS Maintenance Tracker — Progress
+﻿# NDS Maintenance Tracker â€” Progress
+
+| [architecture/permissions.md](architecture/permissions.md) | Role permission matrix |
+
+# NDS Maintenance Tracker â€” Progress
 
 **Last updated:** 2026-03-05
-**Current focus:** Phase 3 — Login, SMTP, Task Views & WhatsApp (not yet started)
+**Current focus:** Phase 3 â€” Login, SMTP, Task Views & WhatsApp (not yet started)
 
 ---
 
@@ -9,16 +13,16 @@
 
 | Phase | Name | Status | Cost |
 |-------|------|--------|------|
-| 1 | MVP — Core task management | ✅ Complete | £0/mo |
-| 2 | Photos, editing & environments | ✅ Complete | £0/mo |
-| 3 | Login, SMTP, task views & WhatsApp | 🔜 Next | ~£2–5/mo |
-| 4 | Scheduling & notifications | 📋 Planned | £0/mo |
-| 5 | Trustee reporting & risk management | 📋 Planned | £0/mo |
-| 6 | PWA & polish | 📋 Planned | ~£1/mo |
+| 1 | MVP â€” Core task management | âœ… Complete | Â£0/mo |
+| 2 | Photos, editing & environments | âœ… Complete | Â£0/mo |
+| 3 | Login, SMTP, task views & WhatsApp | ðŸ”œ Next | ~Â£2â€“5/mo |
+| 4 | Scheduling & notifications | ðŸ“‹ Planned | Â£0/mo |
+| 5 | Trustee reporting & risk management | ðŸ“‹ Planned | Â£0/mo |
+| 6 | PWA & polish | ðŸ“‹ Planned | ~Â£1/mo |
 
 ---
 
-## Phase 1 — MVP ✅ Complete
+## Phase 1 â€” MVP âœ… Complete
 
 **Goal:** Something live that the team can use immediately.
 
@@ -31,14 +35,14 @@
 - [x] Magic link login
 - [x] Password login (added for dev convenience)
 - [x] Invite-only registration
-- [x] Role-based middleware (unauthenticated → `/login`)
+- [x] Role-based middleware (unauthenticated â†’ `/login`)
 - [x] Auth callback for PKCE and OTP flows
 
 ### Database
 - [x] `profiles` table with 5-role system (`volunteer`, `owner`, `ast_lead`, `trustee`, `public`)
 - [x] `sites`, `buildings`, `asset_categories` tables
 - [x] `profile_sites` many-to-many for site-scoped access
-- [x] `tasks` table — full status lifecycle (`open → assigned → in_progress → pending_review → complete`)
+- [x] `tasks` table â€” full status lifecycle (`open â†’ assigned â†’ in_progress â†’ pending_review â†’ complete`)
 - [x] `task_comments` with `is_internal` flag
 - [x] `audit_log` table (structure complete; writes wired in Phase 4)
 - [x] RLS policies on all tables
@@ -47,7 +51,7 @@
 ### Core Features
 - [x] Task list with status tabs (All / Open / In progress / Needs review / Complete)
 - [x] Task detail page (description, location, due date, assignee, category)
-- [x] Create reactive task (mobile-first: site → problem → urgency → submit)
+- [x] Create reactive task (mobile-first: site â†’ problem â†’ urgency â†’ submit)
 - [x] Task assignment (ast_lead only)
 - [x] Status updates with transitions
 - [x] Completion notes when marking done
@@ -66,14 +70,14 @@
 
 ---
 
-## Phase 2 — Photos, Editing & Environments ✅ Complete
+## Phase 2 â€” Photos, Editing & Environments âœ… Complete
 
 **Goal:** Photo evidence on tasks, role-aware editing, stable dual environments.
 
 ### Photo Attachments
 - [x] `task_attachments` table
 - [x] `task-photos` Supabase Storage bucket (private, signed URLs only)
-- [x] Client-side image compression (Canvas API — max 1920px, 80% JPEG)
+- [x] Client-side image compression (Canvas API â€” max 1920px, 80% JPEG)
 - [x] Authenticated photo upload (`uploadTaskPhoto`)
 - [x] Anonymous photo upload via service-role client (`uploadPublicPhoto`)
 - [x] Signed URL generation server-side (60 min expiry)
@@ -96,37 +100,37 @@
 
 ### Environments
 - [x] Separate dev and production Supabase projects
-- [x] `.env.local` → dev credentials (git-ignored)
-- [x] Vercel env vars → production credentials
+- [x] `.env.local` â†’ dev credentials (git-ignored)
+- [x] Vercel env vars â†’ production credentials
 
 ### Bug Fixes
-- [x] Turbopack NUL crash on Windows — pinned `tailwindcss@4.0.7` exactly
-- [x] UUID validation — shape-only regex replacing `z.string().uuid()`
-- [x] Auth callback 404 — created route at `app/auth/callback/route.ts`
-- [x] `handle_new_user` trigger — added `SET search_path = public`
+- [x] Turbopack NUL crash on Windows â€” pinned `tailwindcss@4.0.7` exactly
+- [x] UUID validation â€” shape-only regex replacing `z.string().uuid()`
+- [x] Auth callback 404 â€” created route at `app/auth/callback/route.ts`
+- [x] `handle_new_user` trigger â€” added `SET search_path = public`
 - [x] Seed data UUID mismatch in `003_seed_data.sql`
 - [x] Supabase Site URL updated to Vercel production domain
 
 ---
 
-## Phase 3 — Login, SMTP, Task Views & WhatsApp 🔜 Next up
+## Phase 3 â€” Login, SMTP, Task Views & WhatsApp ðŸ”œ Next up
 
 **Goal:** Confirm all login flows work reliably in production, replace Supabase's default email service with a custom SMTP provider, improve how tasks are presented, and deliver WhatsApp notifications.
 
 ### Login & Authentication Verification
-- [ ] End-to-end test of magic link flow in production (send → receive → land on dashboard)
+- [ ] End-to-end test of magic link flow in production (send â†’ receive â†’ land on dashboard)
 - [ ] End-to-end test of password login in production
-- [ ] End-to-end test of password reset in production (send → receive → set password → redirect)
-- [ ] End-to-end test of invite flow in production (invite email → accept → set password → correct role)
-- [ ] Verify all role-based redirects (volunteer, owner, ast_lead, trustee — each land on correct page)
+- [ ] End-to-end test of password reset in production (send â†’ receive â†’ set password â†’ redirect)
+- [ ] End-to-end test of invite flow in production (invite email â†’ accept â†’ set password â†’ correct role)
+- [ ] Verify all role-based redirects (volunteer, owner, ast_lead, trustee â€” each land on correct page)
 - [ ] Verify unauthenticated users are blocked from all protected routes
 - [ ] Document any issues found and apply fixes
 
 ### Custom SMTP (replace Supabase default)
-- [x] Select SMTP provider — Resend chosen (see [ADR 004](decisions/004_smtp_provider.md))
-- [x] Configure Resend SMTP credentials in Supabase dashboard → Auth → SMTP settings
+- [x] Select SMTP provider â€” Resend chosen (see [ADR 004](decisions/004_smtp_provider.md))
+- [x] Configure Resend SMTP credentials in Supabase dashboard â†’ Auth â†’ SMTP settings
 - [x] Set custom `From` address and display name (`NDS Maintenance`)
-- [ ] Add DNS records to domain — SPF (merge into existing M365 record), DKIM (new subdomain entry) ⬅ blocking
+- [ ] Add DNS records to domain â€” SPF (merge into existing M365 record), DKIM (new subdomain entry) â¬… blocking
 - [ ] Domain verified in Resend dashboard
 - [ ] Confirm auth emails (magic link, invite, password reset) route through Resend in production
 - [ ] Test full invite and magic link flow after DNS propagation
@@ -137,20 +141,20 @@
 - [ ] Task list: group-by view (group by site or building)
 - [ ] Dashboard: improve urgency/overdue summary cards with drill-down links
 - [ ] Dashboard: "assigned to me" quick-view panel for volunteers
-- [ ] Task detail: improved layout — photos and comments side-by-side on desktop
+- [ ] Task detail: improved layout â€” photos and comments side-by-side on desktop
 - [ ] Task detail: activity timeline (status changes, assignments, comments in chronological order)
 - [ ] Mobile: swipe-to-update status gesture on task cards (optional / evaluate feasibility)
 
 ### WhatsApp Notifications (Twilio)
 - [ ] Add `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_WHATSAPP_NUMBER` env vars (dev + production)
-- [ ] `lib/notifications/whatsapp.ts` — Twilio API wrapper
+- [ ] `lib/notifications/whatsapp.ts` â€” Twilio API wrapper
 - [ ] Per-user opt-in UI (`whatsapp_opt_in` column already exists on `profiles`)
 - [ ] WhatsApp message templates: task assigned, task overdue, new public submission
-- [ ] ~£2–5/month pay-per-use
+- [ ] ~Â£2â€“5/month pay-per-use
 
 ---
 
-## Phase 4 — Scheduling & Notifications 📋 Planned
+## Phase 4 â€” Scheduling & Notifications ðŸ“‹ Planned
 
 **Goal:** Automate recurring compliance tasks; alert the team when action is needed.
 
@@ -160,14 +164,14 @@
 - [ ] Link generated tasks to their template via `template_id` on tasks
 
 ### Daily Cron (Vercel Cron)
-- [ ] `app/api/cron/daily/route.ts` — authenticated cron endpoint
-- [ ] `lib/scheduling/generate-tasks.ts` — create task instances from templates
-- [ ] `lib/scheduling/recurrence.ts` — frequency calculation (weekly / monthly / quarterly / annual)
+- [ ] `app/api/cron/daily/route.ts` â€” authenticated cron endpoint
+- [ ] `lib/scheduling/generate-tasks.ts` â€” create task instances from templates
+- [ ] `lib/scheduling/recurrence.ts` â€” frequency calculation (weekly / monthly / quarterly / annual)
 - [ ] `CRON_SECRET` environment variable
 
 ### Email Notifications (Resend)
 - [ ] `RESEND_API_KEY` and `RESEND_FROM_EMAIL` env vars (dev + production)
-- [ ] `lib/notifications/email.ts` — Resend API wrapper
+- [ ] `lib/notifications/email.ts` â€” Resend API wrapper
 - [ ] React Email templates for each event type
 - [ ] Events: task assigned, task due in N days, task overdue, compliance overdue, new public submission, new reactive task
 
@@ -187,7 +191,7 @@
 
 ---
 
-## Phase 5 — Trustee Reporting & Risk Management 📋 Planned
+## Phase 5 â€” Trustee Reporting & Risk Management ðŸ“‹ Planned
 
 **Goal:** Give trustees clear visibility of property health, compliance status, and site risks.
 
@@ -196,7 +200,7 @@
 - [ ] Compliance summary table (task type, last done, next due, status)
 - [ ] Open task counts by priority across all sites
 - [ ] "Completed this month / quarter" summary
-- [ ] Risk summary panel — open risks by severity per site
+- [ ] Risk summary panel â€” open risks by severity per site
 
 ### Compliance View
 - [ ] Filter to compliance-only tasks (`is_compliance = true`)
@@ -205,12 +209,12 @@
 - [ ] Time-to-completion averages
 
 ### Risk Register
-- [ ] `risks` table — site, building, title, description, likelihood, severity, RAG status, owner, review date, status (`open`, `mitigated`, `closed`)
+- [ ] `risks` table â€” site, building, title, description, likelihood, severity, RAG status, owner, review date, status (`open`, `mitigated`, `closed`)
 - [ ] RLS: ast_lead can create/edit/close risks; trustee and owner can view only
-- [ ] Risk management UI at `/risks` (ast_lead) — add, edit, update status
-- [ ] Risk detail page — full description, mitigation notes, history
+- [ ] Risk management UI at `/risks` (ast_lead) â€” add, edit, update status
+- [ ] Risk detail page â€” full description, mitigation notes, history
 - [ ] Risk list linked to site/building for context
-- [ ] Trustee risk view — read-only risk register filtered by site, sortable by severity
+- [ ] Trustee risk view â€” read-only risk register filtered by site, sortable by severity
 - [ ] RAG calculation on trustee dashboard includes open high-severity risks
 
 ### Export
@@ -225,7 +229,7 @@
 
 ---
 
-## Phase 6 — PWA & Polish 📋 Planned
+## Phase 6 â€” PWA & Polish ðŸ“‹ Planned
 
 **Goal:** Professional finish and maximum convenience for volunteers.
 
@@ -233,16 +237,16 @@
 - [ ] Purchase / connect domain (e.g. `maintenance.ndsscouts.org.uk`)
 - [ ] Update Vercel project domain
 - [ ] Update Supabase Site URL + redirect URLs
-- [ ] ~£1/month
+- [ ] ~Â£1/month
 
 ### PWA (Add to Home Screen)
-- [ ] `public/manifest.json` — app name, icons, theme colour
+- [ ] `public/manifest.json` â€” app name, icons, theme colour
 - [ ] Service worker for offline detection
 - [ ] "Add to home screen" prompt on first visit
 - [ ] Splash screen on iOS/Android
 
 ### QR Code Management
-- [ ] `/admin/qr-codes` page — all sites + buildings
+- [ ] `/admin/qr-codes` page â€” all sites + buildings
 - [ ] One-click printable A5 card (QR + "Spot a problem?" text)
 - [ ] QR code regeneration if site slug changes
 
@@ -255,7 +259,7 @@
 - [ ] Bulk assign, bulk status update, bulk export
 
 ### Quick Complete from Email
-- [ ] Magic link in assignment email → tap to mark in-progress without opening the app
+- [ ] Magic link in assignment email â†’ tap to mark in-progress without opening the app
 - [ ] Requires Resend webhook support (Phase 4 prerequisite)
 
 ---
@@ -293,3 +297,16 @@
 | [phases/phase-5-polish.md](phases/phase-5-polish.md) | Phase 5 original polish spec (now Phase 6) |
 | [architecture/database.md](architecture/database.md) | Full schema reference |
 | [architecture/permissions.md](architecture/permissions.md) | Role permission matrix |
+
+---
+
+---
+
+## Completed Phases
+
+---
+
+
+| [architecture/permissions.md](architecture/permissions.md) | Role permission matrix |
+
+| [architecture/permissions.md](architecture/permissions.md) | Role permission matrix |

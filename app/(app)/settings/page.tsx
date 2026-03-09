@@ -11,7 +11,7 @@ export default async function SettingsPage() {
   if (!profile) redirect('/login')
 
   const supabase = await createClient()
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '')
   const isAdmin = profile.role === 'ast_lead' || profile.role === 'trustee'
 
   // Fetch sites based on role — ast_lead and trustee see all; others see their assigned sites
