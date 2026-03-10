@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useTransition } from 'react'
 import { updateTaskStatus, assignTask } from '@/lib/actions/tasks'
@@ -266,7 +266,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
         {canAct && (
           <div className="flex flex-col gap-2">
 
-            {/* open or assigned â†’ in_progress */}
+            {/* open or assigned → in_progress */}
             {(task.status === 'open' || task.status === 'assigned') && (
               <Button
                 variant="outline"
@@ -278,7 +278,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               </Button>
             )}
 
-            {/* in_progress â†’ put on hold (back to assigned) */}
+            {/* in_progress → put on hold (back to assigned) */}
             {task.status === 'in_progress' && isAstLead && (
               <Button
                 variant="outline"
@@ -290,7 +290,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               </Button>
             )}
 
-            {/* in_progress â†’ complete / pending_review */}
+            {/* in_progress → complete / pending_review */}
             {(task.status === 'assigned' || task.status === 'in_progress') && (
               <Button
                 className="h-11 text-base bg-green-600 hover:bg-green-700"
@@ -301,7 +301,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               </Button>
             )}
 
-            {/* pending_review â†’ complete (ast_lead sign-off) */}
+            {/* pending_review → complete (ast_lead sign-off) */}
             {isAstLead && task.status === 'pending_review' && (
               <Button
                 className="h-11 text-base bg-green-600 hover:bg-green-700"
@@ -312,7 +312,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
               </Button>
             )}
 
-            {/* pending_review â†’ in_progress (send back) */}
+            {/* pending_review → in_progress (send back) */}
             {isAstLead && task.status === 'pending_review' && (
               <Button
                 variant="outline"

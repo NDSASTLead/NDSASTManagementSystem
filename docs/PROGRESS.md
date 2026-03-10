@@ -1,4 +1,4 @@
-﻿# NDS Maintenance Tracker — Progress
+# NDS Maintenance Tracker — Progress
 
 | [architecture/permissions.md](architecture/permissions.md) | Role permission matrix |
 
@@ -13,16 +13,16 @@
 
 | Phase | Name | Status | Cost |
 |-------|------|--------|------|
-| 1 | MVP — Core task management | âœ… Complete | £0/mo |
-| 2 | Photos, editing & environments | âœ… Complete | £0/mo |
-| 3 | Login, SMTP, task views & WhatsApp | ðŸ”œ Next | ~£2–5/mo |
-| 4 | Scheduling & notifications | ðŸ“‹ Planned | £0/mo |
-| 5 | Trustee reporting & risk management | ðŸ“‹ Planned | £0/mo |
-| 6 | PWA & polish | ðŸ“‹ Planned | ~£1/mo |
+| 1 | MVP — Core task management | ✅ Complete | £0/mo |
+| 2 | Photos, editing & environments | ✅ Complete | £0/mo |
+| 3 | Login, SMTP, task views & WhatsApp | 🔜 Next | ~£2–5/mo |
+| 4 | Scheduling & notifications | 📋 Planned | £0/mo |
+| 5 | Trustee reporting & risk management | 📋 Planned | £0/mo |
+| 6 | PWA & polish | 📋 Planned | ~£1/mo |
 
 ---
 
-## Phase 1 — MVP âœ… Complete
+## Phase 1 — MVP ✅ Complete
 
 **Goal:** Something live that the team can use immediately.
 
@@ -35,14 +35,14 @@
 - [x] Magic link login
 - [x] Password login (added for dev convenience)
 - [x] Invite-only registration
-- [x] Role-based middleware (unauthenticated â†’ `/login`)
+- [x] Role-based middleware (unauthenticated → `/login`)
 - [x] Auth callback for PKCE and OTP flows
 
 ### Database
 - [x] `profiles` table with 5-role system (`volunteer`, `owner`, `ast_lead`, `trustee`, `public`)
 - [x] `sites`, `buildings`, `asset_categories` tables
 - [x] `profile_sites` many-to-many for site-scoped access
-- [x] `tasks` table — full status lifecycle (`open â†’ assigned â†’ in_progress â†’ pending_review â†’ complete`)
+- [x] `tasks` table — full status lifecycle (`open → assigned → in_progress → pending_review → complete`)
 - [x] `task_comments` with `is_internal` flag
 - [x] `audit_log` table (structure complete; writes wired in Phase 4)
 - [x] RLS policies on all tables
@@ -51,7 +51,7 @@
 ### Core Features
 - [x] Task list with status tabs (All / Open / In progress / Needs review / Complete)
 - [x] Task detail page (description, location, due date, assignee, category)
-- [x] Create reactive task (mobile-first: site â†’ problem â†’ urgency â†’ submit)
+- [x] Create reactive task (mobile-first: site → problem → urgency → submit)
 - [x] Task assignment (ast_lead only)
 - [x] Status updates with transitions
 - [x] Completion notes when marking done
@@ -70,7 +70,7 @@
 
 ---
 
-## Phase 2 — Photos, Editing & Environments âœ… Complete
+## Phase 2 — Photos, Editing & Environments ✅ Complete
 
 **Goal:** Photo evidence on tasks, role-aware editing, stable dual environments.
 
@@ -100,8 +100,8 @@
 
 ### Environments
 - [x] Separate dev and production Supabase projects
-- [x] `.env.local` â†’ dev credentials (git-ignored)
-- [x] Vercel env vars â†’ production credentials
+- [x] `.env.local` → dev credentials (git-ignored)
+- [x] Vercel env vars → production credentials
 
 ### Bug Fixes
 - [x] Turbopack NUL crash on Windows — pinned `tailwindcss@4.0.7` exactly
@@ -113,24 +113,24 @@
 
 ---
 
-## Phase 3 — Login, SMTP, Task Views & WhatsApp ðŸ”œ Next up
+## Phase 3 — Login, SMTP, Task Views & WhatsApp 🔜 Next up
 
 **Goal:** Confirm all login flows work reliably in production, replace Supabase's default email service with a custom SMTP provider, improve how tasks are presented, and deliver WhatsApp notifications.
 
 ### Login & Authentication Verification
-- [ ] End-to-end test of magic link flow in production (send â†’ receive â†’ land on dashboard)
+- [ ] End-to-end test of magic link flow in production (send → receive → land on dashboard)
 - [ ] End-to-end test of password login in production
-- [ ] End-to-end test of password reset in production (send â†’ receive â†’ set password â†’ redirect)
-- [ ] End-to-end test of invite flow in production (invite email â†’ accept â†’ set password â†’ correct role)
+- [ ] End-to-end test of password reset in production (send → receive → set password → redirect)
+- [ ] End-to-end test of invite flow in production (invite email → accept → set password → correct role)
 - [ ] Verify all role-based redirects (volunteer, owner, ast_lead, trustee — each land on correct page)
 - [ ] Verify unauthenticated users are blocked from all protected routes
 - [ ] Document any issues found and apply fixes
 
 ### Custom SMTP (replace Supabase default)
 - [x] Select SMTP provider — Resend chosen (see [ADR 004](decisions/004_smtp_provider.md))
-- [x] Configure Resend SMTP credentials in Supabase dashboard â†’ Auth â†’ SMTP settings
+- [x] Configure Resend SMTP credentials in Supabase dashboard → Auth → SMTP settings
 - [x] Set custom `From` address and display name (`NDS Maintenance`)
-- [ ] Add DNS records to domain — SPF (merge into existing M365 record), DKIM (new subdomain entry) â¬… blocking
+- [ ] Add DNS records to domain — SPF (merge into existing M365 record), DKIM (new subdomain entry) ⬅ blocking
 - [ ] Domain verified in Resend dashboard
 - [ ] Confirm auth emails (magic link, invite, password reset) route through Resend in production
 - [ ] Test full invite and magic link flow after DNS propagation
@@ -154,7 +154,7 @@
 
 ---
 
-## Phase 4 — Scheduling & Notifications ðŸ“‹ Planned
+## Phase 4 — Scheduling & Notifications 📋 Planned
 
 **Goal:** Automate recurring compliance tasks; alert the team when action is needed.
 
@@ -191,7 +191,7 @@
 
 ---
 
-## Phase 5 — Trustee Reporting & Risk Management ðŸ“‹ Planned
+## Phase 5 — Trustee Reporting & Risk Management 📋 Planned
 
 **Goal:** Give trustees clear visibility of property health, compliance status, and site risks.
 
@@ -229,7 +229,7 @@
 
 ---
 
-## Phase 6 — PWA & Polish ðŸ“‹ Planned
+## Phase 6 — PWA & Polish 📋 Planned
 
 **Goal:** Professional finish and maximum convenience for volunteers.
 
@@ -259,7 +259,7 @@
 - [ ] Bulk assign, bulk status update, bulk export
 
 ### Quick Complete from Email
-- [ ] Magic link in assignment email â†’ tap to mark in-progress without opening the app
+- [ ] Magic link in assignment email → tap to mark in-progress without opening the app
 - [ ] Requires Resend webhook support (Phase 4 prerequisite)
 
 ---

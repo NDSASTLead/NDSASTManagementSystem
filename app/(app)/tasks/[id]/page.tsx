@@ -1,4 +1,4 @@
-﻿import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
 import { getSignedUrls } from '@/lib/actions/attachments'
 import { redirect, notFound } from 'next/navigation'
