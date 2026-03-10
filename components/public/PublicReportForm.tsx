@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CheckCircle2, Camera } from 'lucide-react'
 import { PhotoUpload } from '@/components/shared/PhotoUpload'
 
-interface Building { id: string; name: string }
+interface Building { id: string; name: string; building_category: string | null }
 
 interface Props {
   siteId: string
@@ -19,6 +19,56 @@ interface Props {
 }
 
 type Stage = 'form' | 'photos' | 'done'
+
+const CATEGORY_ORDER = [
+  'accommodation', 'activity', 'campsite', 'facilities', 'storage', 'grounds',
+] as const
+
+const CATEGORY_LABELS: Record<string, string> = {
+  accommodation: 'Accommodation',
+  activity: 'Activity Areas',
+  campsite: 'Campsites & Fields',
+  facilities: 'Facilities',
+  storage: 'Storage',
+  grounds: 'Grounds & External',
+}
+
+function BuildingOptions({ buildings }: { buildings: Building[] }) {
+  const hasCategories = buildings.some(b => b.building_category)
+  if (!hasCategories) {
+    return <>{buildings.map(b => (
+      <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+    ))}</>
+  }
+
+  // Group buildings by category
+  const grouped = new Map<string, Building[]>()
+  const uncategorised: Building[] = []
+  for (const b of buildings) {
+    if (!b.building_category) { uncategorised.push(b); continue }
+    if (!grouped.has(b.building_category)) grouped.set(b.building_category, [])
+    grouped.get(b.building_category)!.push(b)
+  }
+
+  return <>
+    {CATEGORY_ORDER.filter(cat => grouped.has(cat)).map(cat => (
+      <SelectGroup key={cat}>
+        <SelectLabel>{CATEGORY_LABELS[cat] ?? cat}</SelectLabel>
+        {grouped.get(cat)!.map(b => (
+          <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+        ))}
+      </SelectGroup>
+    ))}
+    {/* Any categories not in CATEGORY_ORDER */}
+    {[...grouped.entries()].filter(([cat]) => !(CATEGORY_ORDER as readonly string[]).includes(cat)).map(([cat, items]) => (
+      <SelectGroup key={cat}>
+        <SelectLabel>{CATEGORY_LABELS[cat] ?? cat}</SelectLabel>
+        {items.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+      </SelectGroup>
+    ))}
+    {uncategorised.map(b => <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>)}
+  </>
+}
 
 export function PublicReportForm({ siteId, siteName, buildings }: Props) {
   const [isPending, startTransition] = useTransition()
@@ -121,9 +171,7 @@ export function PublicReportForm({ siteId, siteName, buildings }: Props) {
               <SelectValue placeholder="Select building or area" />
             </SelectTrigger>
             <SelectContent>
-              {buildings.map(b => (
-                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-              ))}
+              <BuildingOptions buildings={buildings} />
             </SelectContent>
           </Select>
         </div>

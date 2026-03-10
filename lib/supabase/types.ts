@@ -39,6 +39,7 @@ export interface Building {
   site_id: string
   name: string
   description: string | null
+  building_category: string | null
   is_active: boolean
   created_at: string
 }

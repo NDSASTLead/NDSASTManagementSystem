@@ -17,7 +17,7 @@ export default async function PublicReportPage({ params }: { params: Promise<{ '
 
   const { data: buildings } = await supabase
     .from('buildings')
-    .select('id, name')
+    .select('id, name, building_category')
     .eq('site_id', site.id)
     .eq('is_active', true)
     .order('name')
