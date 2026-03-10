@@ -42,6 +42,17 @@ INSERT INTO buildings (site_id, name, building_category) VALUES
   ('a1b2c3d4-cafe-4000-a000-000000000003', 'Camping Area / Grounds', 'grounds');
 
 -- ============================================================
+-- Ensure Overstone site exists (guard for DBs where 003_seed_data.sql
+-- has not been run -- UPDATE/INSERT below require the site row)
+-- ============================================================
+INSERT INTO sites (id, name, short_name, slug, address, postcode, description) VALUES
+  ('a1b2c3d4-cafe-4000-a000-000000000001',
+   'Overstone Scout Activity Centre', 'Overstone', 'overstone',
+   'Overstone, Northamptonshire', 'NN6 0AD',
+   'Main Scout activity centre including Pack Holiday Centre, Will Smith building, and grounds.')
+ON CONFLICT (id) DO NOTHING;
+
+-- ============================================================
 -- Update existing Overstone buildings with categories
 -- Site UUID: a1b2c3d4-cafe-4000-a000-000000000001
 -- ============================================================
