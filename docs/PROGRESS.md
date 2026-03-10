@@ -1,11 +1,7 @@
 # NDS Maintenance Tracker — Progress
 
-| [architecture/permissions.md](architecture/permissions.md) | Role permission matrix |
-
-# NDS Maintenance Tracker — Progress
-
 **Last updated:** 2026-03-05
-**Current focus:** Phase 3 — Login, SMTP, Task Views & WhatsApp (not yet started)
+**Current focus:** Phase 7 — OBB Volunteer Hours (Phase 3 SMTP blocked pending DNS — see Gary)
 
 ---
 
@@ -19,6 +15,7 @@
 | 4 | Scheduling & notifications | 📋 Planned | £0/mo |
 | 5 | Trustee reporting & risk management | 📋 Planned | £0/mo |
 | 6 | PWA & polish | 📋 Planned | ~£1/mo |
+| 7 | OBB Volunteer Hours | 📋 Planned | £0/mo |
 
 ---
 
@@ -130,7 +127,7 @@
 - [x] Select SMTP provider — Resend chosen (see [ADR 004](decisions/004_smtp_provider.md))
 - [x] Configure Resend SMTP credentials in Supabase dashboard → Auth → SMTP settings
 - [x] Set custom `From` address and display name (`NDS Maintenance`)
-- [ ] Add DNS records to domain — SPF (merge into existing M365 record), DKIM (new subdomain entry) ⬅ blocking
+- [ ] Add DNS records to domain — SPF (merge into existing M365 record), DKIM (new subdomain entry) ⬅ **BLOCKED — Gary to assist with M365 DNS**
 - [ ] Domain verified in Resend dashboard
 - [ ] Confirm auth emails (magic link, invite, password reset) route through Resend in production
 - [ ] Test full invite and magic link flow after DNS propagation
@@ -274,14 +271,54 @@
 - [ ] Add compliance trend tracking and recurring issue detection
 
 ### OBB Hours Monitoring
-- [ ] Add OBB hours logging model (task-linked and manual entries)
-- [ ] Add per-person and per-team hour summaries
-- [ ] Add monthly OBB contribution reporting with export
+> Promoted to **Phase 7** — see full spec in the Phase 7 section below.
 
 ### Risk Management (enhancement)
 - [ ] Extend risk scoring and mitigation workflow automation
 - [ ] Add risk review reminders and overdue escalation prompts
 - [ ] Add cross-site risk heatmap and trend reporting
+
+---
+
+## Phase 7 — OBB Volunteer Hours 📋 Planned
+
+**Goal:** Let OBB campaign volunteers publicly self-register, log their volunteering hours, and earn recognition through configurable reward tiers. Give AST leads a simple approval workflow and the public a live showcase of campaign momentum.
+
+**Source:** OBBPlan.md — AST merch earn-access model (6h patch, 12h t-shirt, 24h hoodie)
+
+### Open Registration
+- [ ] `obb_volunteer` role added to Role enum and RLS policies
+- [ ] Public sign-up page at `/obb/register` (no invite required — email + full name)
+- [ ] Supabase Auth auto-confirm enabled for OBB volunteer accounts
+- [ ] OBB volunteer login redirects to `/obb/dashboard`
+- [ ] Middleware: `/obb/*` routes accessible to `obb_volunteer` role only (except `/obb` public page)
+
+### Database — Configurable Tables
+- [ ] `reward_tiers` table — name, description, hours_threshold, unlock_message, display_order, is_active
+  - Default seed: 6h → patch/sticker access, 12h → t-shirt access, 24h → hoodie/accessory access
+- [ ] `activity_types` table — name, description, icon, display_order, is_active
+  - Default seed: Site work, Buildings, Woodland & Grounds, Admin & Logistics, Events, Other
+- [ ] `volunteer_hours` table — volunteer_id, activity_type_id, date, hours (decimal), description, status (pending/approved/rejected), reviewed_by, reviewed_at, review_note
+- [ ] `obb_settings` table — key/value config (campaign_goal_hours, public_leaderboard_enabled, registration_open)
+- [ ] RLS: obb_volunteers can insert/read own hours; ast_lead can read all + update status; public can read aggregate stats only
+
+### Admin — AST Lead
+- [ ] `/admin/volunteers` — list all OBB volunteers with approved hours total and tier status
+- [ ] `/admin/volunteers/hours` — pending approvals queue (approve / reject with note)
+- [ ] `/admin/tiers` — full CRUD for reward tiers (add, edit, reorder, enable/disable)
+- [ ] `/admin/activity-types` — full CRUD for activity types
+- [ ] `/admin/obb-settings` — campaign goal, toggle registration open/closed, toggle public leaderboard
+
+### Volunteer Portal
+- [ ] `/obb/dashboard` — approved hours total, progress bar to next tier, list of unlocked tiers
+- [ ] `/obb/log` — submit new hours entry (date, activity type, duration, description)
+- [ ] `/obb/history` — full submission history with status badges (pending / approved / rejected + note)
+
+### Public Showcase Page
+- [ ] `/obb` — public page: total approved campaign hours, active volunteer count, recent activity feed
+- [ ] Campaign progress gauge toward configurable goal (e.g. 1,000 hours by May 2028)
+- [ ] Tier milestone display (how many volunteers have hit each tier)
+- [ ] No PII shown publicly — aggregate stats only (opt-in name display per volunteer in settings)
 
 ---
 
