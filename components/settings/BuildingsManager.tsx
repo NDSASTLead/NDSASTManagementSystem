@@ -5,7 +5,7 @@ import { addBuilding, renameBuilding, toggleBuildingActive } from '@/lib/actions
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
-import { Plus, Pencil, Check, X } from 'lucide-react'
+import { Plus, Pencil, Check, X, ChevronDown } from 'lucide-react'
 import type { Building, Site } from '@/lib/supabase/types'
 
 interface SiteWithBuildings extends Site {
@@ -17,19 +17,22 @@ interface Props {
 }
 
 export function BuildingsManager({ sites }: Props) {
-  const showSiteLabel = sites.length > 1
   return (
-    <div className="space-y-6">
+    <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden divide-y divide-gray-100">
       {sites.map(site => (
-        <SiteBuildingsList key={site.id} site={site} showSiteLabel={showSiteLabel} />
+        <SiteBuildingsList key={site.id} site={site} />
       ))}
     </div>
   )
 }
 
-function SiteBuildingsList({ site, showSiteLabel }: { site: SiteWithBuildings; showSiteLabel: boolean }) {
+function SiteBuildingsList({ site }: { site: SiteWithBuildings }) {
+  const [open, setOpen] = useState(false)
   const [isPending, startTransition] = useTransition()
   const [newName, setNewName] = useState('')
+
+  const active = site.buildings.filter(b => b.is_active)
+  const inactive = site.buildings.filter(b => !b.is_active)
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault()
@@ -47,50 +50,63 @@ function SiteBuildingsList({ site, showSiteLabel }: { site: SiteWithBuildings; s
     })
   }
 
-  const active = site.buildings.filter(b => b.is_active)
-  const inactive = site.buildings.filter(b => !b.is_active)
-
   return (
     <div>
-      {showSiteLabel && (
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{site.name}</p>
-      )}
+      {/* Header row — always visible */}
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+      >
+        <span className="text-sm font-medium text-gray-900">{site.name}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-gray-400">{active.length} active</span>
+          <ChevronDown
+            className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          />
+        </div>
+      </button>
 
-      {/* Add form */}
-      <form onSubmit={handleAdd} className="flex gap-2 mb-3">
-        <Input
-          value={newName}
-          onChange={e => setNewName(e.target.value)}
-          placeholder="New building or area name…"
-          className="h-9 text-sm"
-        />
-        <Button
-          type="submit"
-          disabled={isPending || !newName.trim()}
-          size="sm"
-          className="h-9 bg-purple-700 hover:bg-purple-800 gap-1.5 flex-shrink-0"
-        >
-          <Plus className="w-4 h-4" />
-          Add
-        </Button>
-      </form>
+      {/* Expanded content */}
+      {open && (
+        <div className="px-4 pb-4 pt-3 border-t border-gray-100 bg-gray-50/50">
+          {/* Add form */}
+          <form onSubmit={handleAdd} className="flex gap-2 mb-3">
+            <Input
+              value={newName}
+              onChange={e => setNewName(e.target.value)}
+              placeholder="New building or area name…"
+              className="h-9 text-sm bg-white"
+            />
+            <Button
+              type="submit"
+              disabled={isPending || !newName.trim()}
+              size="sm"
+              className="h-9 bg-purple-700 hover:bg-purple-800 gap-1.5 flex-shrink-0"
+            >
+              <Plus className="w-4 h-4" />
+              Add
+            </Button>
+          </form>
 
-      {/* Active buildings */}
-      <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
-        {active.length === 0 ? (
-          <p className="text-sm text-gray-400 px-4 py-4">No active buildings yet.</p>
-        ) : (
-          active.map(b => <BuildingRow key={b.id} building={b} />)
-        )}
-      </div>
-
-      {/* Inactive buildings */}
-      {inactive.length > 0 && (
-        <div className="mt-3">
-          <p className="text-xs text-gray-400 mb-1 px-1">Inactive</p>
-          <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100 opacity-60">
-            {inactive.map(b => <BuildingRow key={b.id} building={b} />)}
+          {/* Active buildings */}
+          <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100">
+            {active.length === 0 ? (
+              <p className="text-sm text-gray-400 px-4 py-4">No active buildings yet.</p>
+            ) : (
+              active.map(b => <BuildingRow key={b.id} building={b} />)
+            )}
           </div>
+
+          {/* Inactive buildings */}
+          {inactive.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs text-gray-400 mb-1 px-1">Inactive</p>
+              <div className="bg-white border border-gray-200 rounded-xl divide-y divide-gray-100 opacity-60">
+                {inactive.map(b => <BuildingRow key={b.id} building={b} />)}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
