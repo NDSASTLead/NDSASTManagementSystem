@@ -118,3 +118,22 @@ export async function removeProfilePicture() {
   revalidatePath('/tasks', 'layout')
   return { success: true }
 }
+
+// ---------------------------------------------------------------------------
+// dismissProfilePrompt — record when user dismissed the profile setup banner
+// ---------------------------------------------------------------------------
+export async function dismissProfilePrompt() {
+  const profile = await getCurrentProfile()
+  if (!profile) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('profiles')
+    .update({ profile_prompt_dismissed_at: new Date().toISOString() })
+    .eq('id', profile.id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/', 'layout')
+  return { success: true }
+}

@@ -20,6 +20,7 @@ export interface Profile {
   is_active: boolean
   created_at: string
   updated_at: string
+  profile_prompt_dismissed_at: string | null
 }
 
 export interface Site {
