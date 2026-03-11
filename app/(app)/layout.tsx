@@ -11,10 +11,13 @@ import { getDisplayName } from '@/lib/utils'
 import { ProfilePromptBanner } from '@/components/shared/ProfilePromptBanner'
 import type { Profile } from '@/lib/supabase/types'
 
-// Show the profile prompt banner on every fresh login.
-// The banner is dismissed per-session: once the user closes it, it stays gone
-// until they log in again (last_sign_in_at > profile_prompt_dismissed_at).
+// Show the profile prompt banner on every fresh login, but only while the
+// profile is incomplete (no display name or no profile picture set).
+// Once both are set the banner never shows again.
+// Dismissed per-session: closes until they log in again.
 function shouldShowProfilePrompt(profile: Profile, lastSignInAt: string | undefined): boolean {
+  const isIncomplete = !profile.display_name || !profile.profile_picture_path
+  if (!isIncomplete) return false
   if (!profile.profile_prompt_dismissed_at) return true
   if (!lastSignInAt) return true
   return new Date(lastSignInAt) > new Date(profile.profile_prompt_dismissed_at)
