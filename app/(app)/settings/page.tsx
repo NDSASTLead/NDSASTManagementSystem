@@ -76,7 +76,7 @@ export default async function SettingsPage() {
             No sites assigned to your account yet.
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden divide-y divide-gray-100">
             {/* All-sites hub link */}
             <SiteQRCard
               siteName="All sites — general report link"
