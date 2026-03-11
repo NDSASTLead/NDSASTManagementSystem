@@ -134,6 +134,5 @@ export async function dismissProfilePrompt() {
 
   if (error) return { error: error.message }
 
-  revalidatePath('/', 'layout')
   return { success: true }
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { UserCircle, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -8,10 +9,12 @@ import { dismissProfilePrompt } from '@/lib/actions/account'
 
 export function ProfilePromptBanner() {
   const [isPending, startTransition] = useTransition()
+  const router = useRouter()
 
   function handleDismiss() {
     startTransition(async () => {
       await dismissProfilePrompt()
+      router.refresh()
     })
   }
 

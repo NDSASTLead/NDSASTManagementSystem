@@ -11,17 +11,13 @@ import { getDisplayName } from '@/lib/utils'
 import { ProfilePromptBanner } from '@/components/shared/ProfilePromptBanner'
 import type { Profile } from '@/lib/supabase/types'
 
-// How many days after dismissal before the profile prompt reappears.
-// Only shown to users who haven't set a display name or profile picture yet.
-const PROFILE_PROMPT_INTERVAL_DAYS = 60
-
-function shouldShowProfilePrompt(profile: Profile): boolean {
-  const isIncomplete = !profile.display_name || !profile.profile_picture_path
-  if (!isIncomplete) return false
+// Show the profile prompt banner on every fresh login.
+// The banner is dismissed per-session: once the user closes it, it stays gone
+// until they log in again (last_sign_in_at > profile_prompt_dismissed_at).
+function shouldShowProfilePrompt(profile: Profile, lastSignInAt: string | undefined): boolean {
   if (!profile.profile_prompt_dismissed_at) return true
-  const dismissedAt = new Date(profile.profile_prompt_dismissed_at).getTime()
-  const intervalMs = PROFILE_PROMPT_INTERVAL_DAYS * 24 * 60 * 60 * 1000
-  return Date.now() - dismissedAt > intervalMs
+  if (!lastSignInAt) return true
+  return new Date(lastSignInAt) > new Date(profile.profile_prompt_dismissed_at)
 }
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -58,7 +54,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </Link>
         </div>
 
-        {shouldShowProfilePrompt(profile) && <ProfilePromptBanner />}
+        {shouldShowProfilePrompt(profile, user.last_sign_in_at) && <ProfilePromptBanner />}
 
         <div className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
           {children}
