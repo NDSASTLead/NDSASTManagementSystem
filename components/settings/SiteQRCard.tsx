@@ -7,14 +7,14 @@ import { Button } from '@/components/ui/button'
 
 interface SiteQRCardProps {
   siteName: string
-  siteSlug: string
+  siteSlug?: string   // omit for the all-sites hub card
   appUrl: string
 }
 
 export function SiteQRCard({ siteName, siteSlug, appUrl }: SiteQRCardProps) {
   const [copied, setCopied] = useState(false)
   const qrRef = useRef<HTMLDivElement>(null)
-  const publicUrl = `${appUrl}/report/${siteSlug}`
+  const publicUrl = siteSlug ? `${appUrl}/report/${siteSlug}` : `${appUrl}/report`
 
   async function copyLink() {
     await navigator.clipboard.writeText(publicUrl)
@@ -30,7 +30,7 @@ export function SiteQRCard({ siteName, siteSlug, appUrl }: SiteQRCardProps) {
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `qr-${siteSlug}.svg`
+    a.download = `qr-${siteSlug || 'hub'}.svg`
     a.click()
     URL.revokeObjectURL(url)
   }

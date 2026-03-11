@@ -77,6 +77,11 @@ export default async function SettingsPage() {
           </div>
         ) : (
           <div className="space-y-4">
+            {/* All-sites hub link */}
+            <SiteQRCard
+              siteName="All sites — general report link"
+              appUrl={appUrl}
+            />
             {sites.map(site => (
               <SiteQRCard
                 key={site.id}
