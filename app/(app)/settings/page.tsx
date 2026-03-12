@@ -1,10 +1,11 @@
 import { redirect } from 'next/navigation'
-import { Settings, Building2 } from 'lucide-react'
+import { Settings, Building2, CalendarClock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
 import { SiteQRCard } from '@/components/settings/SiteQRCard'
 import { BuildingsManager } from '@/components/settings/BuildingsManager'
-import type { Site, Building } from '@/lib/supabase/types'
+import { MaintenanceTemplatesManager } from '@/components/settings/MaintenanceTemplatesManager'
+import type { Site, Building, MaintenanceTemplate } from '@/lib/supabase/types'
 
 export default async function SettingsPage() {
   const profile = await getCurrentProfile()
@@ -12,9 +13,11 @@ export default async function SettingsPage() {
 
   const supabase = await createClient()
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/$/, '')
-  const isAdmin = profile.role === 'ast_lead' || profile.role === 'trustee'
 
-  // Fetch sites based on role — ast_lead and trustee see all; others see their assigned sites
+  const isAdmin = ['ast_lead', 'trustee', 'safety_officer'].includes(profile.role)
+  const isTemplateAdmin = ['ast_lead', 'safety_officer'].includes(profile.role)
+
+  // Fetch sites based on role — admin roles see all; others see their assigned sites
   let sites: Site[] = []
   if (isAdmin) {
     const { data } = await supabase
@@ -33,7 +36,7 @@ export default async function SettingsPage() {
       .filter((s): s is Site => s !== null && s.is_active)
   }
 
-  // Fetch buildings for admin users (for the buildings manager)
+  // Fetch buildings for admin users
   let sitesWithBuildings: (Site & { buildings: Building[] })[] = []
   if (isAdmin) {
     const { data } = await supabase
@@ -47,6 +50,25 @@ export default async function SettingsPage() {
       return acc
     }, {})
     sitesWithBuildings = sites.map(s => ({ ...s, buildings: buildingsBySite[s.id] ?? [] }))
+  }
+
+  // Fetch maintenance templates for template admins
+  let sitesWithTemplates: (Site & { buildings: Building[]; templates: MaintenanceTemplate[] })[] = []
+  if (isTemplateAdmin) {
+    const { data: templatesData } = await supabase
+      .from('maintenance_templates')
+      .select('*')
+      .in('site_id', sites.map(s => s.id))
+      .order('title')
+    const templatesBySite = (templatesData ?? []).reduce<Record<string, MaintenanceTemplate[]>>((acc, t) => {
+      if (!acc[t.site_id]) acc[t.site_id] = []
+      acc[t.site_id].push(t)
+      return acc
+    }, {})
+    sitesWithTemplates = sitesWithBuildings.map(s => ({
+      ...s,
+      templates: templatesBySite[s.id] ?? [],
+    }))
   }
 
   return (
@@ -77,7 +99,6 @@ export default async function SettingsPage() {
           </div>
         ) : (
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden divide-y divide-gray-100">
-            {/* All-sites hub link */}
             <SiteQRCard
               siteName="All sites — general report link"
               appUrl={appUrl}
@@ -105,6 +126,20 @@ export default async function SettingsPage() {
             Add, rename, or deactivate buildings and areas. Deactivated entries are hidden from new tasks but kept for historical records.
           </p>
           <BuildingsManager sites={sitesWithBuildings} />
+        </section>
+      )}
+
+      {/* Maintenance Templates — safety_officer + ast_lead */}
+      {isTemplateAdmin && (
+        <section>
+          <div className="flex items-center gap-2 mb-1">
+            <CalendarClock className="w-4 h-4 text-gray-500" />
+            <h2 className="text-base font-semibold text-gray-900">Maintenance templates</h2>
+          </div>
+          <p className="text-sm text-gray-500 mb-4">
+            Define recurring maintenance schedules. Tasks are auto-generated ahead of their due date so the right person has time to act.
+          </p>
+          <MaintenanceTemplatesManager sites={sitesWithTemplates} />
         </section>
       )}
 

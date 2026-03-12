@@ -60,12 +60,12 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
 
   // Get all profiles for assignment (ast_lead only)
   let assignableProfiles: { id: string; full_name: string; display_name: string | null }[] = []
-  if (profile.role === 'ast_lead') {
+  if (['ast_lead', 'safety_officer'].includes(profile.role)) {
     const { data } = await supabase
       .from('profiles')
       .select('id, full_name, display_name')
       .eq('is_active', true)
-      .in('role', ['volunteer', 'owner', 'ast_lead'])
+      .in('role', ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead'])
       .order('full_name')
     assignableProfiles = data ?? []
   }

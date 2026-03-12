@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-  LayoutDashboard, ClipboardList, PlusCircle,
+  LayoutDashboard, ClipboardList, PlusCircle, ShieldCheck,
   CalendarClock, BarChart3, Users, LogOut, Settings, HelpCircle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -29,14 +29,15 @@ export function Sidebar({ role, displayName, picturePath }: SidebarProps) {
   }
 
   const navLinks = [
-    { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard, roles: ['volunteer', 'owner', 'ast_lead', 'trustee'] },
-    { href: '/tasks', label: 'All Tasks', icon: ClipboardList, roles: ['volunteer', 'owner', 'ast_lead', 'trustee'] },
-    { href: '/tasks/new', label: 'Report a Problem', icon: PlusCircle, roles: ['volunteer', 'owner', 'ast_lead'] },
-    { href: '/schedules', label: 'Schedules', icon: CalendarClock, roles: ['ast_lead'] },
-    { href: '/reports', label: 'Reports', icon: BarChart3, roles: ['ast_lead', 'trustee'] },
-    { href: '/admin/users', label: 'People', icon: Users, roles: ['ast_lead'] },
-    { href: '/settings', label: 'Settings', icon: Settings, roles: ['volunteer', 'owner', 'ast_lead', 'trustee'] },
-    { href: '/help', label: 'How it works', icon: HelpCircle, roles: ['volunteer', 'owner', 'ast_lead', 'trustee'] },
+    { href: '/dashboard',   label: 'Dashboard',        icon: LayoutDashboard, roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead', 'trustee'] },
+    { href: '/tasks',       label: 'All Tasks',         icon: ClipboardList,   roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead', 'trustee'] },
+    { href: '/tasks/new',   label: 'Report a Problem',  icon: PlusCircle,      roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead'] },
+    { href: '/compliance',  label: 'Compliance',        icon: ShieldCheck,     roles: ['responsible_person', 'safety_officer', 'ast_lead', 'trustee'] },
+    { href: '/schedules',   label: 'Schedules',         icon: CalendarClock,   roles: ['ast_lead'] },
+    { href: '/reports',     label: 'Reports',           icon: BarChart3,       roles: ['ast_lead', 'trustee'] },
+    { href: '/admin/users', label: 'People',            icon: Users,           roles: ['ast_lead'] },
+    { href: '/settings',    label: 'Settings',          icon: Settings,        roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead', 'trustee'] },
+    { href: '/help',        label: 'How it works',      icon: HelpCircle,      roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead', 'trustee'] },
   ].filter(l => l.roles.includes(role))
 
   return (
@@ -80,7 +81,7 @@ export function Sidebar({ role, displayName, picturePath }: SidebarProps) {
           <Avatar name={displayName} picturePath={picturePath} size="sm" className="ring-2 ring-purple-500" />
           <div className="min-w-0">
             <p className="text-sm font-medium text-white truncate group-hover:text-purple-200 transition-colors">{displayName}</p>
-            <p className="text-xs text-gray-400 capitalize">{role.replace('_', ' ')}</p>
+            <p className="text-xs text-gray-400 capitalize">{role.replace(/_/g, ' ')}</p>
           </div>
         </Link>
         <button

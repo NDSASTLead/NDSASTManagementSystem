@@ -141,13 +141,21 @@ export async function updateTaskStatus(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
+  const completedAt = new Date().toISOString()
   const update: Record<string, unknown> = { status }
 
   if (status === 'complete') {
-    update.completed_at = new Date().toISOString()
+    update.completed_at = completedAt
     update.completed_by = user.id
     if (completionNotes) update.completion_notes = completionNotes
   }
+
+  // Fetch the task (including template → compliance_obligation link) before updating
+  const { data: task } = await supabase
+    .from('tasks')
+    .select('id, template_id, maintenance_templates(id, compliance_obligation_id)')
+    .eq('id', taskId)
+    .single()
 
   const { error: taskError } = await supabase
     .from('tasks')
@@ -167,6 +175,24 @@ export async function updateTaskStatus(
     is_internal: true,
   })
 
+  // Auto-create compliance record when a template task with a linked obligation is completed
+  if (status === 'complete' && task) {
+    const template = Array.isArray(task.maintenance_templates)
+      ? task.maintenance_templates[0]
+      : (task.maintenance_templates as any)
+    const obligationId = template?.compliance_obligation_id
+    if (obligationId) {
+      await supabase.from('compliance_records').insert({
+        obligation_id: obligationId,
+        completed_at: completedAt,
+        completed_by: user.id,
+        task_id: taskId,
+        notes: completionNotes ?? null,
+      })
+      revalidatePath('/compliance')
+    }
+  }
+
   revalidatePath(`/tasks/${taskId}`)
   revalidatePath('/tasks')
   revalidatePath('/dashboard')
@@ -174,7 +200,7 @@ export async function updateTaskStatus(
 }
 
 // ============================================================
-// Assign Task  (ast_lead only, comment required)
+// Assign Task  (ast_lead + safety_officer, comment required)
 // ============================================================
 export async function assignTask(
   taskId: string,
@@ -252,17 +278,17 @@ export async function updateTask(taskId: string, input: UpdateTaskInput) {
     .single()
   if (!task) return { error: 'Task not found' }
 
-  const isAstLead = profile.role === 'ast_lead'
+  const isAdminRole = ['ast_lead', 'safety_officer'].includes(profile.role)
   const isAssigned = task.assigned_to === user.id
-  const canEdit = isAstLead || (profile.role !== 'trustee' && isAssigned)
+  const canEdit = isAdminRole || (profile.role !== 'trustee' && isAssigned)
 
   if (!canEdit) return { error: 'Not authorised to edit this task' }
 
   const parsed = UpdateTaskSchema.safeParse(input)
   if (!parsed.success) return { error: parsed.error.issues[0].message }
 
-  // Non-ast_lead can only update title + description
-  const update: Partial<UpdateTaskInput> = isAstLead
+  // Non-admin roles can only update title + description
+  const update: Partial<UpdateTaskInput> = isAdminRole
     ? parsed.data
     : { title: parsed.data.title, description: parsed.data.description }
 

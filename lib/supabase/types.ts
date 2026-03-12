@@ -3,10 +3,20 @@
 //
 // Until then, these hand-written types mirror the schema.
 
-export type Role = 'volunteer' | 'owner' | 'ast_lead' | 'trustee'
+export type Role = 'volunteer' | 'responsible_person' | 'safety_officer' | 'ast_lead' | 'trustee'
 export type TaskStatus = 'open' | 'assigned' | 'in_progress' | 'pending_review' | 'complete' | 'cancelled'
 export type TaskType = 'scheduled' | 'reactive'
 export type Priority = 'low' | 'medium' | 'high' | 'critical'
+
+export type ComplianceCategory =
+  | 'fire_safety' | 'legionella' | 'electrical' | 'equipment'
+  | 'first_aid' | 'coshh' | 'risk_assessment' | 'other'
+
+export type ComplianceFrequency =
+  | 'daily' | 'weekly' | 'monthly' | 'quarterly'
+  | 'biannual' | 'annual' | '5_yearly' | 'custom'
+
+export type RAGStatus = 'red' | 'amber' | 'green' | 'unknown'
 
 export interface Profile {
   id: string
@@ -21,6 +31,14 @@ export interface Profile {
   created_at: string
   updated_at: string
   profile_prompt_dismissed_at: string | null
+}
+
+export interface ProfileResponsibility {
+  id: string
+  profile_id: string
+  site_id: string
+  category: string | null
+  created_at: string
 }
 
 export interface Site {
@@ -87,6 +105,7 @@ export interface Task {
   completed_by: string | null
   reviewed_by: string | null
   completion_notes: string | null
+  template_id: string | null
   created_at: string
   updated_at: string
 }
@@ -99,7 +118,6 @@ export interface TaskComment {
   is_internal: boolean
   created_at: string
 }
-
 
 export interface TaskCommentWithAuthor extends TaskComment {
   author?: Profile | null
@@ -126,4 +144,83 @@ export interface TaskWithRelations extends Task {
   created_profile?: Profile | null
   comments?: TaskComment[]
   attachments?: TaskAttachment[]
+}
+
+// ============================================================
+// COMPLIANCE TYPES
+// ============================================================
+
+export interface ComplianceObligation {
+  id: string
+  site_id: string
+  name: string
+  description: string | null
+  category: ComplianceCategory
+  legislation_ref: string | null
+  frequency: ComplianceFrequency
+  frequency_days: number | null
+  notice_days: number
+  red_days: number
+  owner_role: string | null
+  owner_profile_id: string | null
+  is_active: boolean
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface ComplianceRecord {
+  id: string
+  obligation_id: string
+  completed_at: string
+  completed_by: string | null
+  contractor_name: string | null
+  notes: string | null
+  certificate_ref: string | null
+  expiry_date: string | null
+  evidence_path: string | null
+  task_id: string | null
+  created_at: string
+}
+
+export interface ComplianceRecordWithProfile extends ComplianceRecord {
+  completed_profile?: Profile | null
+}
+
+export interface ComplianceObligationWithStatus extends ComplianceObligation {
+  site?: Site
+  buildings?: Building[]
+  owner_profile?: Profile | null
+  latest_record?: ComplianceRecord | null
+  rag: RAGStatus
+  next_due_at: string | null
+}
+
+export interface MaintenanceTemplate {
+  id: string
+  site_id: string
+  building_id: string | null
+  asset_id: string | null
+  title: string
+  description: string | null
+  category_id: string | null
+  priority: Priority
+  is_compliance: boolean
+  legislation_ref: string | null
+  frequency: ComplianceFrequency
+  frequency_days: number | null
+  notice_days: number
+  assign_to_role: Role | null
+  compliance_obligation_id: string | null
+  is_active: boolean
+  last_generated_at: string | null
+  next_generate_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface MaintenanceTemplateWithRelations extends MaintenanceTemplate {
+  site?: Site
+  building?: Building | null
+  category?: AssetCategory | null
 }

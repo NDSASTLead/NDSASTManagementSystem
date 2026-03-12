@@ -15,10 +15,11 @@ interface Props {
 }
 
 const ROLE_LABELS: Record<Role, string> = {
-  volunteer: 'Volunteer',
-  owner: 'Owner',
-  ast_lead: 'AST Lead',
-  trustee: 'Trustee',
+  volunteer:           'Volunteer',
+  responsible_person:  'Responsible Person',
+  safety_officer:      'Safety Officer',
+  ast_lead:            'AST Lead',
+  trustee:             'Trustee',
 }
 
 export function UserRow({ person, currentUserId }: Props) {
@@ -60,7 +61,7 @@ export function UserRow({ person, currentUserId }: Props) {
       </div>
 
       {/* Role selector */}
-      <div className="w-32 flex-shrink-0">
+      <div className="w-44 flex-shrink-0">
         <Select
           value={person.role}
           onValueChange={handleRoleChange}
@@ -71,7 +72,8 @@ export function UserRow({ person, currentUserId }: Props) {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="volunteer">Volunteer</SelectItem>
-            <SelectItem value="owner">Owner</SelectItem>
+            <SelectItem value="responsible_person">Responsible Person</SelectItem>
+            <SelectItem value="safety_officer">Safety Officer</SelectItem>
             <SelectItem value="ast_lead">AST Lead</SelectItem>
             <SelectItem value="trustee">Trustee</SelectItem>
           </SelectContent>

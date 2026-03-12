@@ -7,9 +7,9 @@ import { createClient } from '@/lib/supabase/server'
 import type { Role } from '@/lib/supabase/types'
 import { z } from 'zod'
 
-const ALLOWED_INVITE_ROLES: Role[] = ['volunteer', 'owner', 'ast_lead', 'trustee']
+const ALLOWED_INVITE_ROLES: Role[] = ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead', 'trustee']
 
-// ── Invite a new user ──────────────────────────────────────────────────────
+// -- Invite a new user --
 export async function inviteUser(formData: FormData) {
   const profile = await getCurrentProfile()
   if (!profile || profile.role !== 'ast_lead') {
@@ -48,7 +48,7 @@ export async function inviteUser(formData: FormData) {
   return { success: true }
 }
 
-// ── Update a user's role ───────────────────────────────────────────────────
+// -- Update a user's role --
 export async function updateUserRole(userId: string, role: Role) {
   const profile = await getCurrentProfile()
   if (!profile || profile.role !== 'ast_lead') {
@@ -70,7 +70,7 @@ export async function updateUserRole(userId: string, role: Role) {
   return { success: true }
 }
 
-// ── Activate / deactivate a user ───────────────────────────────────────────
+// -- Activate / deactivate a user --
 export async function setUserActive(userId: string, isActive: boolean) {
   const profile = await getCurrentProfile()
   if (!profile || profile.role !== 'ast_lead') {

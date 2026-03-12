@@ -48,7 +48,7 @@ export function InviteUserForm() {
         />
       </div>
 
-      <div className="w-full sm:w-40">
+      <div className="w-full sm:w-48">
         <Label htmlFor="invite-role" className="sr-only">Role</Label>
         <Select value={role} onValueChange={setRole} name="role">
           <SelectTrigger className="h-10">
@@ -56,7 +56,8 @@ export function InviteUserForm() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="volunteer">Volunteer</SelectItem>
-            <SelectItem value="owner">Owner</SelectItem>
+            <SelectItem value="responsible_person">Responsible Person</SelectItem>
+            <SelectItem value="safety_officer">Safety Officer</SelectItem>
             <SelectItem value="ast_lead">AST Lead</SelectItem>
             <SelectItem value="trustee">Trustee</SelectItem>
           </SelectContent>

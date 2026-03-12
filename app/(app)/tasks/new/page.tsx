@@ -12,7 +12,7 @@ export default async function NewTaskPage() {
   // Get sites this user can see
   let sitesQuery = supabase.from('sites').select('id, name, short_name').eq('is_active', true)
 
-  if (['volunteer', 'owner'].includes(profile.role)) {
+  if (['volunteer', 'responsible_person'].includes(profile.role)) {
     const { data: ps } = await supabase
       .from('profile_sites')
       .select('site_id')
