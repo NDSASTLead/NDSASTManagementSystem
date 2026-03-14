@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { z } from 'zod'
 import type { Priority, TaskStatus } from '@/lib/supabase/types'
+import { notifyTaskAssigned, notifyPublicSubmission } from '@/lib/notifications/email'
 
 // ============================================================
 // Schemas
@@ -123,6 +124,28 @@ export async function createPublicSubmission(formData: FormData) {
     return { error: 'Failed to submit report. Please try again.' }
   }
 
+  // Notify AST leads of new public submission (best-effort, don't block response)
+  try {
+    const { data: astLeads } = await supabase
+      .from('profiles')
+      .select('id, full_name, display_name, email')
+      .in('role', ['ast_lead', 'safety_officer'])
+      .eq('is_active', true)
+    if (astLeads?.length) {
+      notifyPublicSubmission(
+        { ...parsed.data, id: newTask.id, task_type: 'reactive', status: 'open', public_submission: true,
+          asset_id: null, category_id: null, is_compliance: false, legislation_ref: null,
+          location_detail: parsed.data.location_detail ?? null,
+          submitter_name: parsed.data.submitter_name ?? null,
+          due_date: null, completed_at: null, overdue_notified_at: null,
+          created_by: null, assigned_to: null, completed_by: null, reviewed_by: null,
+          completion_notes: null, template_id: null,
+          created_at: new Date().toISOString(), updated_at: new Date().toISOString() } as any,
+        astLeads as any[]
+      ).catch(() => {})
+    }
+  } catch {}
+
   return { success: true, taskId: newTask.id }
 }
 
@@ -232,6 +255,21 @@ export async function assignTask(
     body: comment.trim(),
     is_internal: true,
   })
+
+  // Notify assignee by email (best-effort)
+  if (assigneeId) {
+    try {
+      const supabaseNotify = await createClient()
+      const [{ data: task }, { data: assigner }, { data: assignee }] = await Promise.all([
+        supabaseNotify.from('tasks').select('*').eq('id', taskId).single(),
+        supabaseNotify.from('profiles').select('id, full_name, display_name, email').eq('id', user.id).single(),
+        supabaseNotify.from('profiles').select('id, full_name, display_name, email').eq('id', assigneeId).single(),
+      ])
+      if (task && assigner && assignee) {
+        notifyTaskAssigned(task as any, assignee as any, assigner as any).catch(() => {})
+      }
+    } catch {}
+  }
 
   revalidatePath(`/tasks/${taskId}`)
   revalidatePath('/tasks')

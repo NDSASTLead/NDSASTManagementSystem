@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { Settings, Building2, CalendarClock } from 'lucide-react'
+import { Settings, Building2, CalendarClock, Bell } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
 import { SiteQRCard } from '@/components/settings/SiteQRCard'
@@ -143,6 +143,24 @@ export default async function SettingsPage() {
           <MaintenanceTemplatesManager sites={sitesWithTemplates} />
         </section>
       )}
+
+      {/* Notification settings — all users */}
+      <section>
+        <div className="flex items-center gap-2 mb-1">
+          <Bell className="w-4 h-4 text-gray-500" />
+          <h2 className="text-base font-semibold text-gray-900">Notification settings</h2>
+        </div>
+        <p className="text-sm text-gray-500 mb-4">
+          Choose which emails you receive from the system.
+        </p>
+        <a
+          href="/settings/notifications"
+          className="flex items-center justify-between bg-white rounded-xl border border-gray-200 shadow-sm px-5 py-4 hover:bg-purple-50 transition-colors group"
+        >
+          <span className="text-sm font-medium text-gray-900">Manage notifications</span>
+          <Bell className="w-4 h-4 text-gray-400 group-hover:text-purple-600" />
+        </a>
+      </section>
 
     </div>
   )

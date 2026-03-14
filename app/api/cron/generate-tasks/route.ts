@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateTasksFromTemplates } from '@/lib/actions/maintenance-templates'
+import { runOverdueChecks } from '@/lib/notifications/overdue'
 
 export async function GET(req: NextRequest) {
   const secret = process.env.CRON_SECRET
@@ -11,13 +12,18 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const result = await generateTasksFromTemplates()
+    const [generated, overdue] = await Promise.all([
+      generateTasksFromTemplates(),
+      runOverdueChecks(),
+    ])
     return NextResponse.json({
-      generated: result.generated,
+      generated: generated.generated,
+      tasksNotified: overdue.tasksNotified,
+      complianceNotified: overdue.complianceNotified,
       timestamp: new Date().toISOString(),
     })
   } catch (err) {
-    console.error('generate-tasks cron error:', err)
+    console.error('cron error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

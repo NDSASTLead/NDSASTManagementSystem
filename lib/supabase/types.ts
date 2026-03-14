@@ -224,3 +224,19 @@ export interface MaintenanceTemplateWithRelations extends MaintenanceTemplate {
   building?: Building | null
   category?: AssetCategory | null
 }
+
+export type NotificationEventType =
+  | 'task_assigned'
+  | 'task_overdue'
+  | 'public_submission'
+  | 'compliance_overdue'
+
+export interface NotificationSetting {
+  id: string
+  profile_id: string
+  event_type: NotificationEventType
+  enabled: boolean
+  threshold_days: number | null
+  created_at: string
+  updated_at: string
+}
