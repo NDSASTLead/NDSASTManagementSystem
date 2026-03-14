@@ -25,7 +25,7 @@ export default async function SettingsPage() {
       .select('*')
       .eq('is_active', true)
       .order('name')
-    sites = data ?? []
+    sites = (data ?? []).sort((a, b) => a.slug === 'general' ? 1 : b.slug === 'general' ? -1 : 0)
   } else {
     const { data } = await supabase
       .from('profile_sites')
@@ -34,6 +34,7 @@ export default async function SettingsPage() {
     sites = (data ?? [])
       .map((row) => row.site as unknown as Site)
       .filter((s): s is Site => s !== null && s.is_active)
+      .sort((a, b) => a.slug === 'general' ? 1 : b.slug === 'general' ? -1 : 0)
   }
 
   // Fetch buildings for admin users
