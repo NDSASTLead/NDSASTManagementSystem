@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Eye, EyeOff } from 'lucide-react'
 
 type Mode = 'magic-link' | 'password'
 
@@ -14,6 +15,7 @@ export default function LoginForm({ passwordReset = false }: { passwordReset?: b
   const [mode, setMode] = useState<Mode>(passwordReset ? 'password' : 'magic-link')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [sent, setSent] = useState(false)
   const [sentReset, setSentReset] = useState(false)
