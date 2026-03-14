@@ -1,96 +1,87 @@
-import { HelpCircle, ArrowRight, ArrowDown } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { HelpCircle, ArrowRight } from 'lucide-react'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
 import { redirect } from 'next/navigation'
 
 // ── Inline status pill ──────────────────────────────────────────────────────
 function Status({ label, colour }: { label: string; colour: string }) {
   return (
-    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium border ${colour}`}>
+    <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium border ${colour}`}>
       {label}
     </span>
   )
 }
 
-// ── Flow step card ──────────────────────────────────────────────────────────
-function FlowStep({
-  status,
-  colour,
+// ── Button display ───────────────────────────────────────────────────────────
+function Btn({ label, variant = 'default' }: { label: string; variant?: 'primary' | 'default' | 'danger' }) {
+  const cls =
+    variant === 'primary'
+      ? 'bg-purple-700 text-white border-purple-700'
+      : variant === 'danger'
+      ? 'bg-red-50 text-red-700 border-red-300'
+      : 'bg-white text-gray-800 border-gray-300'
+  return (
+    <span className={`inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold border shadow-sm ${cls}`}>
+      {label}
+    </span>
+  )
+}
+
+// ── Action card ──────────────────────────────────────────────────────────────
+function ActionCard({
+  button,
+  variant = 'default',
   who,
   description,
-  button,
-  last = false,
+  note,
+  from,
+  to,
 }: {
-  status: string
-  colour: string
+  button: string
+  variant?: 'primary' | 'default' | 'danger'
   who: string
   description: string
-  button?: string
-  last?: boolean
+  note?: string
+  from?: { label: string; colour: string }
+  to?: { label: string; colour: string }
 }) {
   return (
-    <div className="flex flex-col items-center">
-      <div className={`w-full rounded-xl border p-4 ${colour}`}>
-        <div className="flex items-start justify-between gap-2 mb-1">
-          <span className="font-semibold text-sm">{status}</span>
-          <span className="text-xs text-gray-500 whitespace-nowrap">{who}</span>
-        </div>
-        <p className="text-xs text-gray-600 leading-relaxed">{description}</p>
-        {button && (
-          <p className="mt-2 text-xs font-medium text-gray-800">
-            Button: <span className="italic">"{button}"</span>
-          </p>
+    <div className="flex gap-4 py-4 border-b border-gray-100 last:border-0">
+      {/* Button col */}
+      <div className="w-48 shrink-0 flex flex-col gap-2 pt-0.5">
+        <Btn label={button} variant={variant} />
+        {from && to && (
+          <div className="flex items-center gap-1 flex-wrap">
+            <Status {...from} />
+            <ArrowRight className="w-3 h-3 text-gray-300 shrink-0" />
+            <Status {...to} />
+          </div>
         )}
       </div>
-      {!last && (
-        <div className="flex items-center justify-center w-8 h-6 text-gray-300">
-          <ArrowDown className="w-4 h-4" />
-        </div>
-      )}
+      {/* Detail col */}
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{who}</p>
+        <p className="text-sm text-gray-700 leading-relaxed">{description}</p>
+        {note && (
+          <p className="text-xs text-gray-400 italic">{note}</p>
+        )}
+      </div>
     </div>
   )
 }
 
-// ── Role section ────────────────────────────────────────────────────────────
-function RoleSection({
-  role,
-  colour,
-  actions,
-}: {
-  role: string
-  colour: string
-  actions: string[]
-}) {
+// ── Role section ─────────────────────────────────────────────────────────────
+function RoleSection({ role, colour, actions }: { role: string; colour: string; actions: string[] }) {
   return (
     <div className={`rounded-xl border p-4 ${colour}`}>
       <p className="font-semibold text-sm mb-2">{role}</p>
       <ul className="space-y-1">
         {actions.map(a => (
           <li key={a} className="flex items-start gap-2 text-xs text-gray-700">
-            <span className="mt-0.5 text-gray-400 flex-shrink-0">•</span>
+            <span className="mt-0.5 text-gray-400 shrink-0">•</span>
             {a}
           </li>
         ))}
       </ul>
-    </div>
-  )
-}
-
-// ── How-to row ──────────────────────────────────────────────────────────────
-function HowTo({ goal, steps }: { goal: string; steps: string[] }) {
-  return (
-    <div className="pb-4 border-b border-gray-100 last:border-0 last:pb-0">
-      <p className="text-sm font-semibold text-gray-900 mb-2">{goal}</p>
-      <ol className="space-y-1.5">
-        {steps.map((s, i) => (
-          <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-purple-100 text-purple-700 text-xs font-semibold flex items-center justify-center mt-0.5">
-              {i + 1}
-            </span>
-            {s}
-          </li>
-        ))}
-      </ol>
     </div>
   )
 }
@@ -109,200 +100,142 @@ export default async function HelpPage() {
         </div>
         <div>
           <h1 className="text-2xl font-bold text-gray-900">How it works</h1>
-          <p className="text-sm text-gray-500">Task flow, roles, and what each button does</p>
+          <p className="text-sm text-gray-500">What each button does and who can press it</p>
         </div>
       </div>
 
-      {/* ── Task lifecycle ── */}
+      {/* ── Button reference ── */}
       <section>
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Task lifecycle</h2>
-        <p className="text-sm text-gray-500 mb-5">
-          Every maintenance issue follows the same path from report through to sign-off.
+        <h2 className="text-base font-semibold text-gray-900 mb-1">Task buttons</h2>
+        <p className="text-sm text-gray-500 mb-4">
+          Every status change requires a short note before it saves — this creates an audit trail of what happened and why.
         </p>
 
-        <div className="flex flex-col gap-0">
-          <FlowStep
-            status="Open"
-            colour="bg-gray-50 border-gray-200"
-            who="Anyone"
-            description="A problem has been reported — either by a logged-in user via the app, or by a visitor via the public QR-code link. No one has been assigned yet."
-          />
-          <FlowStep
-            status="Assigned"
-            colour="bg-blue-50 border-blue-200"
-            who="AST Lead assigns"
-            description='An AST Lead selects a person from the "Assign to" dropdown on the task. They must add a note explaining the assignment. The assignee can now see the task on their list.'
-            button="Assign to → [select name]"
-          />
-          <FlowStep
-            status="In Progress"
-            colour="bg-yellow-50 border-yellow-200"
-            who="Assignee or AST Lead"
-            description="The assignee has started working on the task. They press the button when they physically begin, so the team knows it is being actively worked on."
-            button="I've started this"
-          />
-          <FlowStep
-            status="Waiting for review"
-            colour="bg-purple-50 border-purple-200"
-            who="Assignee completes"
-            description={"The assignee has finished the work and pressed \"I've completed this\". Their note describes exactly what was done. The task now waits for an AST Lead to check and sign it off. AST Leads skip this step and go straight to Complete."}
-            button="I've completed this"
-          />
-          <FlowStep
-            status="Complete"
-            colour="bg-green-50 border-green-200"
-            who="AST Lead signs off"
-            description='An AST Lead has reviewed the work and confirmed it is done. They press "Sign off as complete" and add a confirmation note. The task is now closed.'
-            button="Sign off as complete"
-            last
-          />
-        </div>
+        <div className="bg-white rounded-xl border border-gray-200 shadow-sm px-4">
 
-        {/* Side paths */}
-        <div className="mt-6 space-y-3">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Other transitions</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-xs">
-              <p className="font-semibold text-orange-800 mb-1">Put on hold</p>
-              <p className="text-gray-600">
-                <Status label="In Progress" colour="bg-yellow-100 text-yellow-700 border-yellow-200" />
-                {' '}<ArrowRight className="inline w-3 h-3" />{' '}
-                <Status label="Assigned" colour="bg-blue-100 text-blue-700 border-blue-200" />
-              </p>
-              <p className="mt-1.5 text-gray-600">AST Lead can pause work and return the task to Assigned — e.g. waiting for parts.</p>
-            </div>
-            <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-xs">
-              <p className="font-semibold text-orange-800 mb-1">Send back for rework</p>
-              <p className="text-gray-600">
-                <Status label="Waiting for review" colour="bg-purple-100 text-purple-700 border-purple-200" />
-                {' '}<ArrowRight className="inline w-3 h-3" />{' '}
-                <Status label="In Progress" colour="bg-yellow-100 text-yellow-700 border-yellow-200" />
-              </p>
-              <p className="mt-1.5 text-gray-600">AST Lead inspects the work and decides it needs more attention before sign-off.</p>
-            </div>
-            <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs sm:col-span-2">
-              <p className="font-semibold text-red-700 mb-1">Cancel task</p>
-              <p className="text-gray-600">AST Lead only. Closes the task permanently — e.g. the problem no longer exists or was resolved another way. A reason must be provided.</p>
-            </div>
-          </div>
+          <ActionCard
+            button="Report a problem"
+            variant="primary"
+            who="Anyone (no login needed via QR code; logged-in for the full form)"
+            description="Opens the report form. Fill in the location, describe the problem, and set a priority. Logged-in users can also set a due date and category."
+            from={{ label: '—', colour: 'text-gray-400 border-gray-200 bg-gray-50' }}
+            to={{ label: 'Open', colour: 'bg-gray-100 text-gray-700 border-gray-300' }}
+          />
+
+          <ActionCard
+            button="Assign to →"
+            who="AST Lead · Safety Officer"
+            description="Pick a person from the dropdown to assign them to the task. They'll see it in their task list. You must add a note — include what you need them to do and by when."
+            note="Tip: you can reassign at any time — just pick a different person."
+            from={{ label: 'Open', colour: 'bg-gray-100 text-gray-700 border-gray-300' }}
+            to={{ label: 'Assigned', colour: 'bg-blue-100 text-blue-700 border-blue-200' }}
+          />
+
+          <ActionCard
+            button="I've started this"
+            who="Assignee · AST Lead · Safety Officer"
+            description="Tells the team you've physically begun the work. Use it when you arrive on site or start investigating, so nobody else thinks it is still waiting."
+            from={{ label: 'Assigned', colour: 'bg-blue-100 text-blue-700 border-blue-200' }}
+            to={{ label: 'In Progress', colour: 'bg-yellow-100 text-yellow-700 border-yellow-200' }}
+          />
+
+          <ActionCard
+            button="I've completed this"
+            who="Assignee · AST Lead · Safety Officer"
+            description="Marks the work as finished. Describe exactly what was done — include any parts used, costs, or anything the site owner should know."
+            note="Volunteers & Responsible Persons: task moves to Waiting for Review for sign-off. AST Lead & Safety Officer: task closes immediately."
+            from={{ label: 'In Progress', colour: 'bg-yellow-100 text-yellow-700 border-yellow-200' }}
+            to={{ label: 'Complete / Review', colour: 'bg-purple-100 text-purple-700 border-purple-200' }}
+          />
+
+          <ActionCard
+            button="Sign off as complete"
+            who="AST Lead · Safety Officer"
+            description="Confirms the work meets the required standard and closes the task. Check any completion notes and photos before signing off. Add a short confirmation — e.g. 'Checked on site — all good.'"
+            from={{ label: 'Waiting for review', colour: 'bg-purple-100 text-purple-700 border-purple-200' }}
+            to={{ label: 'Complete', colour: 'bg-green-100 text-green-700 border-green-200' }}
+          />
+
+          <ActionCard
+            button="Send back for rework"
+            who="AST Lead · Safety Officer"
+            description="Returns the task to In Progress when the work is not finished or not up to standard. Be specific in your note about what still needs to be done so the assignee knows exactly what's expected."
+            from={{ label: 'Waiting for review', colour: 'bg-purple-100 text-purple-700 border-purple-200' }}
+            to={{ label: 'In Progress', colour: 'bg-yellow-100 text-yellow-700 border-yellow-200' }}
+          />
+
+          <ActionCard
+            button="Put on hold"
+            who="AST Lead · Safety Officer"
+            description="Pauses active work and returns the task to Assigned. Use this when progress is blocked — e.g. waiting for parts, a contractor, or further information. Note the reason so the team knows what is being waited on."
+            from={{ label: 'In Progress', colour: 'bg-yellow-100 text-yellow-700 border-yellow-200' }}
+            to={{ label: 'Assigned', colour: 'bg-blue-100 text-blue-700 border-blue-200' }}
+          />
+
+          <ActionCard
+            button="Cancel task"
+            variant="danger"
+            who="AST Lead only"
+            description="Permanently closes the task without completing it. Use when the problem no longer exists, was resolved another way, or was logged in error. A reason is required and cannot be undone."
+            note="Cancelled tasks are kept in the record — they are never deleted."
+          />
+
         </div>
       </section>
 
       {/* ── Roles ── */}
       <section>
-        <h2 className="text-base font-semibold text-gray-900 mb-4">Roles &amp; what they can do</h2>
+        <h2 className="text-base font-semibold text-gray-900 mb-4">Roles &amp; permissions</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <RoleSection
-            role="Volunteer / Site Owner"
+            role="Volunteer"
             colour="bg-gray-50 border-gray-200"
             actions={[
-              'Report a new problem via the app',
+              'Report problems (app or QR code)',
               'View tasks at their assigned site(s)',
               'Start and complete tasks assigned to them',
-              'Add comments to tasks they can see',
-              'Upload photos to tasks',
+              'Add comments and upload photos',
+            ]}
+          />
+          <RoleSection
+            role="Responsible Person"
+            colour="bg-orange-50 border-orange-200"
+            actions={[
+              'Everything a Volunteer can do',
+              'View compliance obligations for their site(s) or category',
+              'Record completion of compliance checks',
+            ]}
+          />
+          <RoleSection
+            role="Safety Officer"
+            colour="bg-yellow-50 border-yellow-200"
+            actions={[
+              'Assign and manage tasks',
+              'Sign off and cancel tasks',
+              'Full access to the Compliance Register',
+              'Add and edit compliance obligations',
+              'Manage maintenance templates',
             ]}
           />
           <RoleSection
             role="AST Lead"
             colour="bg-purple-50 border-purple-200"
             actions={[
-              'Everything a Volunteer can do',
-              'Assign tasks to any team member',
-              'Change task status (put on hold, send back, cancel)',
-              'Sign off completed tasks',
-              'Manage buildings & areas in Settings',
+              'Everything a Safety Officer can do',
               'Invite and manage team members',
+              'Manage buildings & areas in Settings',
+              'Access reports',
             ]}
           />
           <RoleSection
             role="Trustee"
             colour="bg-blue-50 border-blue-200"
             actions={[
-              'View all tasks across all sites (read only)',
-              'Cannot create, edit, or change the status of tasks',
+              'View all tasks and compliance data (read only)',
+              'Cannot create, edit, or change status',
             ]}
           />
         </div>
-      </section>
-
-      {/* ── How to ── */}
-      <section>
-        <h2 className="text-base font-semibold text-gray-900 mb-1">Common actions — step by step</h2>
-        <p className="text-sm text-gray-500 mb-4">
-          Every status change and assignment requires you to type a short note before it saves. This creates a history of what happened and why.
-        </p>
-        <Card>
-          <CardContent className="pt-5 space-y-4">
-            <HowTo
-              goal="Report a problem (public — no login needed)"
-              steps={[
-                'Scan the QR code at the building, or use the public link from Settings.',
-                'Choose the building or area where the problem is.',
-                'Describe the problem clearly.',
-                'Optionally add your name and a photo.',
-                'Tap "Send report".',
-              ]}
-            />
-            <HowTo
-              goal="Report a problem (logged in)"
-              steps={[
-                'Tap "Report a Problem" in the menu.',
-                'Fill in the location, description, priority, and optional due date.',
-                'Tap "Create task".',
-              ]}
-            />
-            <HowTo
-              goal="Assign a task to someone (AST Lead)"
-              steps={[
-                'Open the task.',
-                'Use the "Assign to" dropdown in the Actions card.',
-                'Select the person.',
-                'Type a note explaining who should do what and by when.',
-                'Tap "Assign" to confirm.',
-              ]}
-            />
-            <HowTo
-              goal="Start work on a task"
-              steps={[
-                'Open the task assigned to you.',
-                'Tap "I\'ve started this" in the Actions card.',
-                'Type a short note — e.g. "Started today, need to check the parts list first."',
-                'Tap "Start task" to confirm.',
-              ]}
-            />
-            <HowTo
-              goal="Mark a task as complete"
-              steps={[
-                'Open the task you have finished.',
-                'Tap "I\'ve completed this".',
-                'Type a note describing exactly what you did — include any parts used or costs.',
-                'Tap "Mark complete" to confirm.',
-                'If you are a Volunteer or Owner, the task moves to "Waiting for review" for an AST Lead to sign off.',
-                'If you are an AST Lead, the task closes immediately.',
-              ]}
-            />
-            <HowTo
-              goal="Sign off a completed task (AST Lead)"
-              steps={[
-                'Open the task showing "Waiting for review".',
-                'Check the completion notes and any photos.',
-                'Tap "Sign off as complete".',
-                'Type a confirmation note — e.g. "Checked on site — all good."',
-                'Tap "Sign off" to close the task.',
-              ]}
-            />
-            <HowTo
-              goal="Send a task back for rework (AST Lead)"
-              steps={[
-                'Open the task showing "Waiting for review".',
-                'Tap "Send back for rework".',
-                'Type a clear explanation of what still needs to be done.',
-                'Tap "Send back" — the task returns to "In Progress" for the assignee.',
-              ]}
-            />
-          </CardContent>
-        </Card>
       </section>
 
     </div>
