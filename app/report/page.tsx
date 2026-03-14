@@ -5,11 +5,14 @@ import { MapPin, ChevronRight } from 'lucide-react'
 export default async function ReportHubPage() {
   const supabase = await createClient()
 
-  const { data: sites } = await supabase
+  const { data: rawSites } = await supabase
     .from('sites')
     .select('id, name, slug')
     .eq('is_active', true)
     .order('name')
+  const sites = (rawSites ?? []).sort((a, b) =>
+    a.slug === 'general' ? 1 : b.slug === 'general' ? -1 : 0
+  )
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-8">
@@ -26,7 +29,7 @@ export default async function ReportHubPage() {
         </div>
 
         <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
-          {(sites ?? []).map((site, i, arr) => (
+          {sites.map((site, i, arr) => (
             <Link
               key={site.id}
               href={'/report/' + site.slug}
@@ -41,7 +44,7 @@ export default async function ReportHubPage() {
             </Link>
           ))}
 
-          {(sites ?? []).length === 0 && (
+          {sites.length === 0 && (
             <p className="text-center py-8 text-gray-500 text-sm px-4">
               No sites are currently active. Please contact the maintenance team directly.
             </p>
