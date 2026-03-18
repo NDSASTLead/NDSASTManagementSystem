@@ -116,6 +116,8 @@ export async function addComplianceObligation(data: {
   owner_role?: string | null
   owner_profile_id?: string | null
   notes?: string | null
+  instructions?: string | null
+  self_completed?: boolean
   building_ids?: string[]
 }) {
   const profile = await getCurrentProfile()
@@ -169,6 +171,8 @@ export async function updateComplianceObligation(
     owner_role: string | null
     owner_profile_id: string | null
     notes: string | null
+    instructions: string | null
+    self_completed: boolean
     building_ids: string[]
   }>
 ) {

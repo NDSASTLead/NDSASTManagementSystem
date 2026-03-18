@@ -266,7 +266,7 @@ export async function assignTask(
         supabaseNotify.from('profiles').select('id, full_name, display_name, email').eq('id', assigneeId).single(),
       ])
       if (task && assigner && assignee) {
-        notifyTaskAssigned(task as any, assignee as any, assigner as any).catch(() => {})
+        notifyTaskAssigned(task as any, assignee as any, assigner as any, comment).catch(() => {})
       }
     } catch {}
   }

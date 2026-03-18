@@ -79,17 +79,24 @@ export default async function DashboardPage() {
     listQuery    = listQuery.eq('assigned_to', profile.id)
   }
 
-  const [openRes, overdueRes, doneRes, listRes] = await Promise.all([
+  // My tasks: tasks assigned to the current user (for non-volunteer, non-trustee roles)
+  const myTasksQuery = (!isVolunteer && !isTrustee)
+    ? supabase.from('tasks').select(detailSelect).in('status', activeStatuses).eq('assigned_to', profile.id).order('due_date', { ascending: true, nullsFirst: false }).limit(8)
+    : null
+
+  const [openRes, overdueRes, doneRes, listRes, myTasksRes] = await Promise.all([
     openQuery,
     overdueQuery,
     doneQuery,
     isTrustee ? Promise.resolve({ data: [] }) : listQuery,
+    myTasksQuery ?? Promise.resolve({ data: [] }),
   ])
 
   const openCount     = openRes.count ?? 0
   const overdueCount  = overdueRes.count ?? 0
   const doneCount     = doneRes.count ?? 0
   const recentTasks   = (listRes.data ?? []) as TaskWithRelations[]
+  const myTasks       = (myTasksRes.data ?? []) as TaskWithRelations[]
 
   const greeting = profile.display_name || profile.full_name.split(' ')[0]
 
@@ -340,6 +347,60 @@ export default async function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {/* ── My tasks (non-volunteer, non-trustee) ── */}
+      {!isVolunteer && !isTrustee && (
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-base font-semibold">My tasks</CardTitle>
+            <Button variant="ghost" size="sm" asChild>
+              <Link href="/tasks?assigned_to=me" className="text-purple-700">View all</Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            {myTasks.length === 0 ? (
+              <div className="text-center py-8 text-gray-400">
+                <CheckCircle2 className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+                <p className="text-sm text-gray-500">No tasks assigned to you.</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-100">
+                {myTasks.map(task => {
+                  const isOverdue = task.due_date && task.due_date < today
+                  return (
+                    <Link
+                      key={task.id}
+                      href={`/tasks/${task.id}`}
+                      className="flex items-start gap-3 px-6 py-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">{task.title}</p>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          <span className="text-xs text-gray-500">
+                            {task.site?.short_name}
+                            {task.building && ` · ${task.building.name}`}
+                          </span>
+                          {task.due_date && (
+                            <span className={`flex items-center gap-1 text-xs ${isOverdue ? 'text-red-600 font-medium' : 'text-gray-400'}`}>
+                              <Clock className="w-3 h-3" />
+                              {isOverdue ? 'Overdue · ' : ''}
+                              {new Date(task.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <PriorityBadge priority={task.priority} />
+                        <StatusBadge status={task.status} />
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* ── Active task list (non-trustee) ── */}

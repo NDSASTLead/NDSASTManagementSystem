@@ -13,10 +13,11 @@ import { compressImage } from '@/lib/utils'
 
 interface RecordFormProps {
   obligationId: string
+  selfCompleted?: boolean
   onSuccess?: () => void
 }
 
-export function RecordForm({ obligationId, onSuccess }: RecordFormProps) {
+export function RecordForm({ obligationId, selfCompleted = false, onSuccess }: RecordFormProps) {
   const [isPending, startTransition] = useTransition()
   const [file, setFile] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -98,18 +99,22 @@ export function RecordForm({ obligationId, onSuccess }: RecordFormProps) {
             className="mt-1"
           />
         </div>
-        <div className="col-span-2 sm:col-span-1">
-          <Label htmlFor="certificate_ref">Certificate / ref no.</Label>
-          <Input id="certificate_ref" name="certificate_ref" placeholder="Optional" className="mt-1" />
-        </div>
-        <div className="col-span-2 sm:col-span-1">
-          <Label htmlFor="contractor_name">Contractor (if external)</Label>
-          <Input id="contractor_name" name="contractor_name" placeholder="Optional" className="mt-1" />
-        </div>
-        <div className="col-span-2 sm:col-span-1">
-          <Label htmlFor="expiry_date">Certificate expiry</Label>
-          <Input id="expiry_date" name="expiry_date" type="date" className="mt-1" />
-        </div>
+        {!selfCompleted && (
+          <>
+            <div className="col-span-2 sm:col-span-1">
+              <Label htmlFor="certificate_ref">Certificate / ref no.</Label>
+              <Input id="certificate_ref" name="certificate_ref" placeholder="Optional" className="mt-1" />
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <Label htmlFor="contractor_name">Contractor (if external)</Label>
+              <Input id="contractor_name" name="contractor_name" placeholder="Optional" className="mt-1" />
+            </div>
+            <div className="col-span-2 sm:col-span-1">
+              <Label htmlFor="expiry_date">Certificate expiry</Label>
+              <Input id="expiry_date" name="expiry_date" type="date" className="mt-1" />
+            </div>
+          </>
+        )}
       </div>
 
       <div>

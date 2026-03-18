@@ -165,6 +165,8 @@ export interface ComplianceObligation {
   owner_profile_id: string | null
   is_active: boolean
   notes: string | null
+  instructions: string | null
+  self_completed: boolean
   created_at: string
   updated_at: string
 }

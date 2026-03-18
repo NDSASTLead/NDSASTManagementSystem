@@ -41,7 +41,7 @@ export function Sidebar({ role, displayName, picturePath }: SidebarProps) {
   ].filter(l => l.roles.includes(role))
 
   return (
-    <aside className="hidden md:flex flex-col w-64 min-h-screen bg-gray-900 text-white">
+    <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 bg-gray-900 text-white overflow-hidden">
       <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-700">
         <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
           <span className="text-white font-bold text-sm">N</span>
@@ -52,7 +52,7 @@ export function Sidebar({ role, displayName, picturePath }: SidebarProps) {
         </div>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {navLinks.map(({ href, label, icon: Icon }) => {
           const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
           return (

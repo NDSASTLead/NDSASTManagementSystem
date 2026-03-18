@@ -117,6 +117,12 @@ export default async function ComplianceDetailPage({
               <p className="text-gray-700">{obligation.description}</p>
             </div>
           )}
+          {obligation.instructions && (
+            <div className="col-span-2 rounded-lg bg-blue-50 border border-blue-100 p-3">
+              <p className="text-xs text-blue-600 uppercase tracking-wide font-medium mb-1">How to complete</p>
+              <p className="text-sm text-blue-900 whitespace-pre-line">{obligation.instructions}</p>
+            </div>
+          )}
           {obligation.buildings && obligation.buildings.length > 0 && (
             <div className="col-span-2">
               <p className="text-xs text-gray-400 uppercase tracking-wide mb-0.5 flex items-center gap-1">
@@ -173,7 +179,7 @@ export default async function ComplianceDetailPage({
             <CardTitle className="text-base">Record completion</CardTitle>
           </CardHeader>
           <CardContent>
-            <RecordForm obligationId={id} />
+            <RecordForm obligationId={id} selfCompleted={obligation.self_completed} />
           </CardContent>
         </Card>
       )}
@@ -197,15 +203,15 @@ export default async function ComplianceDetailPage({
                           <Calendar className="w-3.5 h-3.5 text-gray-400" />
                           {format(new Date(rec.completed_at), 'd MMM yyyy')}
                         </span>
-                        {rec.contractor_name && (
+                        {!obligation.self_completed && rec.contractor_name && (
                           <span className="text-gray-500 text-xs">· {rec.contractor_name}</span>
                         )}
-                        {rec.certificate_ref && (
+                        {!obligation.self_completed && rec.certificate_ref && (
                           <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">
                             Ref: {rec.certificate_ref}
                           </span>
                         )}
-                        {rec.expiry_date && (
+                        {!obligation.self_completed && rec.expiry_date && (
                           <span className="text-xs text-gray-500">
                             Expires: {format(new Date(rec.expiry_date), 'd MMM yyyy')}
                           </span>

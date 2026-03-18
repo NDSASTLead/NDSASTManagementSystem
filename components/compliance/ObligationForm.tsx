@@ -64,19 +64,21 @@ export function ObligationForm({ sites, buildings = [], defaultSiteId, obligatio
     const fd = new FormData(e.currentTarget)
 
     const data = {
-      site_id:        fd.get('site_id') as string,
-      name:           fd.get('name') as string,
-      category:       fd.get('category') as string,
-      description:    (fd.get('description') as string) || null,
-      legislation_ref:(fd.get('legislation_ref') as string) || null,
+      site_id:         fd.get('site_id') as string,
+      name:            fd.get('name') as string,
+      category:        fd.get('category') as string,
+      description:     (fd.get('description') as string) || null,
+      legislation_ref: (fd.get('legislation_ref') as string) || null,
       frequency,
-      frequency_days: frequency === 'custom' ? parseInt(fd.get('frequency_days') as string) || null : null,
-      notice_days:    parseInt(fd.get('notice_days') as string) || 14,
-      red_days:       parseInt(fd.get('red_days') as string) || 0,
-      owner_role:     (fd.get('owner_role') as string | null) === '_none' ? null : ((fd.get('owner_role') as string) || null),
-      owner_profile_id: (fd.get('owner_profile_id') as string | null) === '_none' ? null : ((fd.get('owner_profile_id') as string) || null),
-      notes:          (fd.get('notes') as string) || null,
-      building_ids:   selectedBuildingIds,
+      frequency_days:  frequency === 'custom' ? parseInt(fd.get('frequency_days') as string) || null : null,
+      notice_days:     parseInt(fd.get('notice_days') as string) || 14,
+      red_days:        parseInt(fd.get('red_days') as string) || 0,
+      owner_role:      (fd.get('owner_role') as string | null) === '_none' ? null : ((fd.get('owner_role') as string) || null),
+      owner_profile_id:(fd.get('owner_profile_id') as string | null) === '_none' ? null : ((fd.get('owner_profile_id') as string) || null),
+      notes:           (fd.get('notes') as string) || null,
+      instructions:    (fd.get('instructions') as string) || null,
+      self_completed:  fd.get('self_completed') === 'on',
+      building_ids:    selectedBuildingIds,
     }
 
     startTransition(async () => {
@@ -158,6 +160,18 @@ export function ObligationForm({ sites, buildings = [], defaultSiteId, obligatio
           <Textarea id="description" name="description" rows={2}
             defaultValue={obligation?.description ?? ''}
             placeholder="What needs to be done?"
+            className="mt-1" />
+        </div>
+
+        {/* Instructions */}
+        <div className="sm:col-span-2">
+          <Label htmlFor="instructions">
+            How to complete
+            <span className="ml-1 text-xs text-gray-400">shown to person recording completion</span>
+          </Label>
+          <Textarea id="instructions" name="instructions" rows={3}
+            defaultValue={obligation?.instructions ?? ''}
+            placeholder="Step-by-step instructions for completing this check..."
             className="mt-1" />
         </div>
 
@@ -279,6 +293,26 @@ export function ObligationForm({ sites, buildings = [], defaultSiteId, obligatio
             defaultValue={obligation?.notes ?? ''}
             placeholder="Any additional notes..."
             className="mt-1" />
+        </div>
+
+        {/* Self-completed flag */}
+        <div className="sm:col-span-2 flex items-start gap-3 p-3 rounded-lg bg-gray-50 border border-gray-200">
+          <input
+            id="self_completed"
+            name="self_completed"
+            type="checkbox"
+            defaultChecked={obligation?.self_completed ?? false}
+            className="mt-0.5 h-4 w-4 rounded border-gray-300 accent-purple-700"
+          />
+          <div>
+            <Label htmlFor="self_completed" className="cursor-pointer font-medium">
+              Internally completed (no contractor or certificate required)
+            </Label>
+            <p className="text-xs text-gray-500 mt-0.5">
+              Hides contractor and certificate fields when recording completion.
+              Next due date is calculated automatically from the completion date.
+            </p>
+          </div>
         </div>
       </div>
 
