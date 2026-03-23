@@ -9,11 +9,12 @@ import { StatusBadge } from '@/components/shared/StatusBadge'
 import type { TaskWithRelations } from '@/lib/supabase/types'
 import { getDisplayName } from '@/lib/utils'
 import { Avatar } from '@/components/shared/Avatar'
+import { TaskLocationFilter } from '@/components/tasks/TaskLocationFilter'
 
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; site?: string }>
+  searchParams: Promise<{ status?: string; site?: string; building?: string }>
 }) {
   const supabase = await createClient()
   const profile = await getCurrentProfile()
@@ -22,6 +23,14 @@ export default async function TasksPage({
   const params = await searchParams
   const statusFilter = params.status
   const siteFilter = params.site
+  const buildingFilter = params.building
+
+  const [{ data: sites }, { data: buildings }] = await Promise.all([
+    supabase.from('sites').select('id, short_name').eq('is_active', true).order('short_name'),
+    siteFilter
+      ? supabase.from('buildings').select('id, name').eq('site_id', siteFilter).eq('is_active', true).order('name')
+      : Promise.resolve({ data: [] }),
+  ])
 
   let query = supabase
     .from('tasks')
@@ -33,6 +42,7 @@ export default async function TasksPage({
 
   if (statusFilter) query = query.eq('status', statusFilter)
   if (siteFilter) query = query.eq('site_id', siteFilter)
+  if (buildingFilter) query = query.eq('building_id', buildingFilter)
 
   const { data: tasks } = await query
   const typedTasks = (tasks ?? []) as TaskWithRelations[]
@@ -61,11 +71,25 @@ export default async function TasksPage({
         )}
       </div>
 
+      {/* Location filter */}
+      <TaskLocationFilter
+        sites={sites ?? []}
+        buildings={buildings ?? []}
+        selectedSiteId={siteFilter}
+        selectedBuildingId={buildingFilter}
+        statusFilter={statusFilter}
+      />
+
       {/* Status filter tabs */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         {statusTabs.map(tab => {
+          const params = new URLSearchParams()
+          if (tab.value) params.set('status', tab.value)
+          if (siteFilter) params.set('site', siteFilter)
+          if (buildingFilter) params.set('building', buildingFilter)
+          const qs = params.toString()
+          const href = qs ? `/tasks?${qs}` : '/tasks'
           const active = statusFilter === tab.value
-          const href = tab.value ? `/tasks?status=${tab.value}` : '/tasks'
           return (
             <Link
               key={tab.label}
