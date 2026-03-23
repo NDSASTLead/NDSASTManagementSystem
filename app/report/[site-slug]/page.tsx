@@ -42,6 +42,7 @@ export default async function PublicReportPage({ params }: { params: Promise<{ '
           <PublicReportForm
             siteId={site.id}
             siteName={site.name}
+            siteSlug={slug}
             buildings={buildings ?? []}
           />
         </div>

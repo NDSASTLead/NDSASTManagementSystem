@@ -15,6 +15,7 @@ interface Building { id: string; name: string; building_category: string | null 
 interface Props {
   siteId: string
   siteName: string
+  siteSlug?: string
   buildings: Building[]
 }
 
@@ -70,7 +71,7 @@ function BuildingOptions({ buildings }: { buildings: Building[] }) {
   </>
 }
 
-export function PublicReportForm({ siteId, siteName, buildings }: Props) {
+export function PublicReportForm({ siteId, siteName, siteSlug, buildings }: Props) {
   const [isPending, startTransition] = useTransition()
   const [stage, setStage] = useState<Stage>('form')
   const [taskId, setTaskId] = useState<string | null>(null)
@@ -160,6 +161,22 @@ export function PublicReportForm({ siteId, siteName, buildings }: Props) {
   // ── Report form ──────────────────────────────────────────────
   return (
     <form action={handleSubmit} className="space-y-5">
+      {siteSlug === 'overstone' && (
+        <a
+          href="https://wa.me/447518343802"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm no-underline"
+        >
+          <svg className="mt-0.5 h-4 w-4 flex-shrink-0 text-red-600" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.477 2 2 6.477 2 12c0 1.89.525 3.66 1.438 5.168L2 22l4.832-1.438A9.96 9.96 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2Zm0 18a7.96 7.96 0 0 1-4.07-1.115l-.29-.172-2.87.854.854-2.87-.172-.29A7.96 7.96 0 0 1 4 12c0-4.418 3.582-8 8-8s8 3.582 8 8-3.582 8-8 8Zm4.406-5.845c-.242-.121-1.432-.707-1.654-.787-.221-.08-.382-.12-.543.12-.16.242-.623.787-.764.948-.14.16-.281.18-.523.06-.242-.12-1.022-.376-1.947-1.2-.72-.643-1.207-1.437-1.348-1.679-.14-.242-.015-.373.106-.493.108-.108.242-.281.362-.422.121-.14.161-.242.242-.402.08-.161.04-.302-.02-.422-.06-.121-.543-1.311-.744-1.794-.196-.47-.396-.406-.543-.414l-.462-.008c-.16 0-.422.06-.643.302-.221.242-.845.826-.845 2.015 0 1.19.865 2.34.986 2.502.12.16 1.703 2.6 4.127 3.645.577.248 1.027.397 1.378.508.579.184 1.106.158 1.523.096.465-.069 1.432-.586 1.633-1.152.201-.565.201-1.05.14-1.151-.06-.1-.221-.161-.463-.282Z"/>
+          </svg>
+          <span>
+            <span className="font-semibold text-red-700">Emergency?</span>
+            <span className="text-red-600"> Message the site manager on WhatsApp →</span>
+          </span>
+        </a>
+      )}
       {/* Building */}
       {buildings.length > 0 && (
         <div>
