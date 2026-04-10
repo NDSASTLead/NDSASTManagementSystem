@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/server'
 import type { Role } from '@/lib/supabase/types'
 import { z } from 'zod'
 
-const ALLOWED_INVITE_ROLES: Role[] = ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead', 'trustee']
+const ALLOWED_INVITE_ROLES: Role[] = ['volunteer', 'responsible_person', 'safety_officer', 'ast_member', 'ast_lead', 'trustee']
 
 // -- Invite a new user --
 export async function inviteUser(formData: FormData) {

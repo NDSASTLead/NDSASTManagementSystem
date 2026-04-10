@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/bwous/AppData/Roaming/Claude/local-agent-mode-sessions/skills-plugin/40890a0f-e738-4e7a-8888-8f2e9ba4f143/74f6fd68-0002-48a1-bd0f-6b4590cfcc64/skills/xlsx/**)",
+      "Bash(python -c ':*)",
+      "Bash(python3 -c \"import pandas as pd; all_sheets = pd.read_excel\\('C:/Users/bwous/Downloads/RAG List.xlsx', sheet_name=None\\); [print\\(f'=== Sheet: {name} ===\\\\n{df.to_string\\(\\)}\\\\n'\\) for name, df in all_sheets.items\\(\\)]\")",
+      "Bash(py -3 -c \"import pandas as pd; all_sheets = pd.read_excel\\('C:/Users/bwous/Downloads/RAG List.xlsx', sheet_name=None\\); [print\\(f'=== Sheet: {name} ===\\\\n{df.to_string\\(\\)}\\\\n'\\) for name, df in all_sheets.items\\(\\)]\")",
+      "Bash(/c/Users/bwous/AppData/Local/Microsoft/WindowsApps/python3 -c \"import pandas as pd; all_sheets = pd.read_excel\\('C:/Users/bwous/Downloads/RAG List.xlsx', sheet_name=None\\); [print\\(f'=== Sheet: {name} ===\\\\n{df.to_string\\(\\)}\\\\n'\\) for name, df in all_sheets.items\\(\\)]\")",
+      "Read(//c/Users/bwous/AppData/Local/Programs/**)",
+      "Bash(ls \"/c/Python\"*)",
+      "Read(//c/Users/bwous/**)",
+      "Bash(find /c/Users/bwous/OneDrive/Documents/Scouts/NDSASTManagementSystem/lib -type f \\\\\\( -name \"*compliance*\" -o -name \"*rag*\" \\\\\\) -exec ls -la {} \\\\;)",
+      "Bash(npm list:*)",
+      "Bash(npx xlsx:*)",
+      "Bash(cd /tmp)",
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(node -e ':*)",
+      "mcp__a222d90f-5ead-4b4f-9408-add28ecc343b__list_projects",
+      "Bash(grep -E \"\\\\.\\(ts|tsx|js\\)$\")",
+      "mcp__a222d90f-5ead-4b4f-9408-add28ecc343b__list_tables",
+      "mcp__a222d90f-5ead-4b4f-9408-add28ecc343b__execute_sql",
+      "mcp__a222d90f-5ead-4b4f-9408-add28ecc343b__apply_migration",
+      "mcp__875b3a8c-24b1-4ec7-b072-8a287d358dea__list_teams",
+      "mcp__875b3a8c-24b1-4ec7-b072-8a287d358dea__list_projects"
+    ]
+  }
+}

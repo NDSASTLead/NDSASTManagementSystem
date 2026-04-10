@@ -37,6 +37,7 @@ const ROLES = [
   { value: 'volunteer', label: 'Volunteer' },
   { value: 'responsible_person', label: 'Responsible Person' },
   { value: 'safety_officer', label: 'Safety Officer' },
+  { value: 'ast_member', label: 'AST Member' },
   { value: 'ast_lead', label: 'AST Lead' },
 ]
 

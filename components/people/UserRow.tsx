@@ -18,6 +18,7 @@ const ROLE_LABELS: Record<Role, string> = {
   volunteer:           'Volunteer',
   responsible_person:  'Responsible Person',
   safety_officer:      'Safety Officer',
+  ast_member:          'AST Member',
   ast_lead:            'AST Lead',
   trustee:             'Trustee',
 }
@@ -74,6 +75,7 @@ export function UserRow({ person, currentUserId }: Props) {
             <SelectItem value="volunteer">Volunteer</SelectItem>
             <SelectItem value="responsible_person">Responsible Person</SelectItem>
             <SelectItem value="safety_officer">Safety Officer</SelectItem>
+            <SelectItem value="ast_member">AST Member</SelectItem>
             <SelectItem value="ast_lead">AST Lead</SelectItem>
             <SelectItem value="trustee">Trustee</SelectItem>
           </SelectContent>

@@ -58,6 +58,7 @@ export function InviteUserForm() {
             <SelectItem value="volunteer">Volunteer</SelectItem>
             <SelectItem value="responsible_person">Responsible Person</SelectItem>
             <SelectItem value="safety_officer">Safety Officer</SelectItem>
+            <SelectItem value="ast_member">AST Member</SelectItem>
             <SelectItem value="ast_lead">AST Lead</SelectItem>
             <SelectItem value="trustee">Trustee</SelectItem>
           </SelectContent>

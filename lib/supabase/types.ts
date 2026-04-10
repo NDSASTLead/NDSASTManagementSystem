@@ -3,7 +3,7 @@
 //
 // Until then, these hand-written types mirror the schema.
 
-export type Role = 'volunteer' | 'responsible_person' | 'safety_officer' | 'ast_lead' | 'trustee'
+export type Role = 'volunteer' | 'responsible_person' | 'safety_officer' | 'ast_member' | 'ast_lead' | 'trustee'
 export type TaskStatus = 'open' | 'assigned' | 'in_progress' | 'pending_review' | 'complete' | 'cancelled'
 export type TaskType = 'scheduled' | 'reactive'
 export type Priority = 'low' | 'medium' | 'high' | 'critical'

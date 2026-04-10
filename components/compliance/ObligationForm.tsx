@@ -36,6 +36,7 @@ const OWNER_ROLES = [
   { value: '_none',              label: 'Unspecified' },
   { value: 'responsible_person', label: 'Responsible Person' },
   { value: 'safety_officer',     label: 'Safety Officer' },
+  { value: 'ast_member',         label: 'AST Member' },
   { value: 'ast_lead',           label: 'AST Lead' },
   { value: 'contractor',         label: 'External Contractor' },
 ]
