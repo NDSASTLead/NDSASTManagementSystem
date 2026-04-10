@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, ClipboardList, PlusCircle, ShieldCheck,
-  CalendarClock, BarChart3, Users, LogOut, Settings, HelpCircle
+  CalendarClock, BarChart3, Users, LogOut, Settings, HelpCircle, AlertTriangle
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/client'
@@ -29,15 +29,16 @@ export function Sidebar({ role, displayName, picturePath }: SidebarProps) {
   }
 
   const navLinks = [
-    { href: '/dashboard',   label: 'Dashboard',        icon: LayoutDashboard, roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead', 'trustee'] },
-    { href: '/tasks',       label: 'All Tasks',         icon: ClipboardList,   roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead', 'trustee'] },
-    { href: '/tasks/new',   label: 'Report a Problem',  icon: PlusCircle,      roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead'] },
-    { href: '/compliance',  label: 'Compliance',        icon: ShieldCheck,     roles: ['responsible_person', 'safety_officer', 'ast_lead', 'trustee'] },
+    { href: '/dashboard',   label: 'Dashboard',        icon: LayoutDashboard, roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_member', 'ast_lead', 'trustee'] },
+    { href: '/tasks',       label: 'All Tasks',         icon: ClipboardList,   roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_member', 'ast_lead', 'trustee'] },
+    { href: '/tasks/new',   label: 'Report a Problem',  icon: PlusCircle,      roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_member', 'ast_lead'] },
+    { href: '/safety',      label: 'Safety',            icon: AlertTriangle,   roles: ['safety_officer', 'ast_member', 'ast_lead', 'trustee'] },
+    { href: '/compliance',  label: 'Compliance',        icon: ShieldCheck,     roles: ['responsible_person', 'safety_officer', 'ast_member', 'ast_lead', 'trustee'] },
     { href: '/schedules',   label: 'Schedules',         icon: CalendarClock,   roles: ['ast_lead'] },
-    { href: '/reports',     label: 'Reports',           icon: BarChart3,       roles: ['ast_lead', 'trustee'] },
+    { href: '/reports',     label: 'Reports',           icon: BarChart3,       roles: ['ast_member', 'ast_lead', 'trustee'] },
     { href: '/admin/users', label: 'People',            icon: Users,           roles: ['ast_lead'] },
-    { href: '/settings',    label: 'Settings',          icon: Settings,        roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead', 'trustee'] },
-    { href: '/help',        label: 'How it works',      icon: HelpCircle,      roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_lead', 'trustee'] },
+    { href: '/settings',    label: 'Settings',          icon: Settings,        roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_member', 'ast_lead', 'trustee'] },
+    { href: '/help',        label: 'How it works',      icon: HelpCircle,      roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_member', 'ast_lead', 'trustee'] },
   ].filter(l => l.roles.includes(role))
 
   return (

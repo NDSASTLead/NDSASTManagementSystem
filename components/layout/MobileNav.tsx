@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ClipboardList, PlusCircle, ShieldCheck, Users, Settings } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, PlusCircle, ShieldCheck, Users, Settings, AlertTriangle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Role } from '@/lib/supabase/types'
 
@@ -16,10 +16,13 @@ export function MobileNav({ role }: MobileNavProps) {
   const baseLinks = [
     { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { href: '/tasks',     label: 'Tasks',     icon: ClipboardList },
-    ...(['volunteer', 'responsible_person', 'safety_officer', 'ast_lead'].includes(role)
+    ...(['volunteer', 'responsible_person', 'safety_officer', 'ast_member', 'ast_lead'].includes(role)
       ? [{ href: '/tasks/new', label: 'Report', icon: PlusCircle }]
       : []),
-    ...(['responsible_person', 'safety_officer', 'ast_lead', 'trustee'].includes(role)
+    ...(['safety_officer', 'ast_member', 'ast_lead', 'trustee'].includes(role)
+      ? [{ href: '/safety', label: 'Safety', icon: AlertTriangle }]
+      : []),
+    ...(['responsible_person', 'safety_officer', 'ast_member', 'ast_lead', 'trustee'].includes(role)
       ? [{ href: '/compliance', label: 'Compliance', icon: ShieldCheck }]
       : []),
     ...(role === 'ast_lead'
