@@ -198,6 +198,18 @@ export interface ComplianceObligationWithStatus extends ComplianceObligation {
   next_due_at: string | null
 }
 
+export interface ComplianceComment {
+  id: string
+  obligation_id: string
+  author_id: string | null
+  body: string
+  created_at: string
+}
+
+export interface ComplianceCommentWithAuthor extends ComplianceComment {
+  author?: Profile | null
+}
+
 export interface MaintenanceTemplate {
   id: string
   site_id: string

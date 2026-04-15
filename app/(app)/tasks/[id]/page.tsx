@@ -87,7 +87,7 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   const today = new Date().toISOString().split('T')[0]
   const isOverdue = typedTask.due_date && typedTask.due_date < today && typedTask.status !== 'complete'
   const canUpload = profile.role !== 'trustee'
-  const canDelete = profile.role === 'ast_lead'
+  const canDelete = ['ast_lead', 'safety_officer', 'ast_member'].includes(profile.role)
   const canEdit = profile.role === 'ast_lead' ||
     (profile.role !== 'trustee' && typedTask.assigned_to === profile.id)
 

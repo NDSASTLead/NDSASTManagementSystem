@@ -308,6 +308,47 @@ export async function addComplianceRecord(
 }
 
 // ============================================================
+// updateComplianceRecord — ast_lead, safety_officer, ast_member
+// ============================================================
+export async function updateComplianceRecord(
+  id: string,
+  data: Partial<{
+    completed_at: string
+    contractor_name: string | null
+    notes: string | null
+    certificate_ref: string | null
+    expiry_date: string | null
+  }>
+) {
+  const profile = await getCurrentProfile()
+  if (!profile) return { error: 'Not authenticated' }
+  if (!['ast_lead', 'safety_officer', 'ast_member'].includes(profile.role)) {
+    return { error: 'Not authorised' }
+  }
+
+  const supabase = await createClient()
+
+  const { data: record } = await supabase
+    .from('compliance_records')
+    .select('obligation_id')
+    .eq('id', id)
+    .single()
+
+  const { error } = await supabase
+    .from('compliance_records')
+    .update(data)
+    .eq('id', id)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/compliance')
+  if (record?.obligation_id) {
+    revalidatePath(`/compliance/${record.obligation_id}`)
+  }
+  return { success: true }
+}
+
+// ============================================================
 // deleteComplianceRecord
 // ============================================================
 export async function deleteComplianceRecord(id: string) {
@@ -397,6 +438,60 @@ export async function setProfileResponsibilities(
   }
 
   revalidatePath('/admin/users')
+  return { success: true }
+}
+
+// ============================================================
+// getComplianceComments
+// ============================================================
+export async function getComplianceComments(obligationId: string) {
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('compliance_comments')
+    .select('*, author:profiles(id, full_name, display_name, profile_picture_path)')
+    .eq('obligation_id', obligationId)
+    .order('created_at', { ascending: true })
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
+// ============================================================
+// addComplianceComment — ast_lead, safety_officer, ast_member
+// ============================================================
+export async function addComplianceComment(obligationId: string, body: string) {
+  const profile = await getCurrentProfile()
+  if (!profile) return { error: 'Not authenticated' }
+  if (!['ast_lead', 'safety_officer', 'ast_member'].includes(profile.role)) {
+    return { error: 'Not authorised' }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('compliance_comments')
+    .insert({ obligation_id: obligationId, author_id: profile.id, body })
+
+  if (error) return { error: error.message }
+
+  revalidatePath(`/compliance/${obligationId}`)
+  return { success: true }
+}
+
+// ============================================================
+// deleteComplianceComment — own comment or ast_lead
+// ============================================================
+export async function deleteComplianceComment(commentId: string, obligationId: string) {
+  const profile = await getCurrentProfile()
+  if (!profile) return { error: 'Not authenticated' }
+
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('compliance_comments')
+    .delete()
+    .eq('id', commentId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath(`/compliance/${obligationId}`)
   return { success: true }
 }
 

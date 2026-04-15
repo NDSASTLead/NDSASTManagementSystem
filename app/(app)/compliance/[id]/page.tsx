@@ -2,14 +2,16 @@ import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
 import { createClient } from '@/lib/supabase/server'
-import { getComplianceObligation, getComplianceEvidenceUrl, getProfileResponsibilities } from '@/lib/actions/compliance'
+import { getComplianceObligation, getComplianceEvidenceUrl, getProfileResponsibilities, getComplianceComments } from '@/lib/actions/compliance'
 import { getProfileScope, CATEGORY_LABELS, formatFrequency, formatDueLabel } from '@/lib/compliance-utils'
 import { RAGBadge } from '@/components/compliance/RAGBadge'
 import { RecordForm } from '@/components/compliance/RecordForm'
+import { EditRecordForm } from '@/components/compliance/EditRecordForm'
+import { ComplianceComments } from '@/components/compliance/ComplianceComments'
 import { AssignOwnerSelect } from '@/components/compliance/AssignOwnerSelect'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Edit, FileText, Calendar, User, Building2 } from 'lucide-react'
+import { ArrowLeft, Edit, FileText, Calendar, User, Building2, MessageSquare } from 'lucide-react'
 import { format } from 'date-fns'
 
 const ACCESS_ROLES = ['responsible_person', 'safety_officer', 'ast_lead', 'trustee']
@@ -45,6 +47,8 @@ export default async function ComplianceDetailPage({
   }
 
   const canEdit = ['ast_lead', 'safety_officer'].includes(profile.role)
+  const canEditRecords = ['ast_lead', 'safety_officer', 'ast_member'].includes(profile.role)
+  const canComment = ['ast_lead', 'safety_officer', 'ast_member'].includes(profile.role)
 
   const records: any[] = obligation.compliance_records ?? []
 
@@ -56,6 +60,8 @@ export default async function ComplianceDetailPage({
       if (url) evidenceUrls[rec.id] = url
     }
   }
+
+  const comments = await getComplianceComments(id)
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -225,17 +231,26 @@ export default async function ComplianceDetailPage({
                       )}
                       {rec.notes && <p className="text-gray-600 mt-1">{rec.notes}</p>}
                     </div>
-                    {evidenceUrls[rec.id] && (
-                      <a
-                        href={evidenceUrls[rec.id]}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-800 flex-shrink-0"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        Evidence
-                      </a>
-                    )}
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      {evidenceUrls[rec.id] && (
+                        <a
+                          href={evidenceUrls[rec.id]}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-800"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          Evidence
+                        </a>
+                      )}
+                      {canEditRecords && (
+                        <EditRecordForm
+                          record={rec}
+                          selfCompleted={obligation.self_completed}
+                          obligationId={id}
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -243,6 +258,24 @@ export default async function ComplianceDetailPage({
           )}
         </CardContent>
       </Card>
+      {/* Comments */}
+      {(canComment || comments.length > 0) && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <MessageSquare className="w-4 h-4 text-gray-400" />
+              Comments ({comments.length})
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ComplianceComments
+              obligationId={id}
+              comments={comments}
+              currentProfile={profile}
+            />
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

@@ -133,7 +133,7 @@ export async function uploadPublicPhoto(taskId: string, formData: FormData) {
 }
 
 // ============================================================
-// Delete photo — ast_lead only
+// Delete photo — ast_lead, safety_officer, ast_member
 // ============================================================
 export async function deleteTaskPhoto(attachmentId: string, storagePath: string, taskId: string) {
   const supabase = await createClient()
@@ -148,8 +148,9 @@ export async function deleteTaskPhoto(attachmentId: string, storagePath: string,
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'ast_lead') {
-    return { error: 'Only AST leads can delete photos' }
+  const canDelete = ['ast_lead', 'safety_officer', 'ast_member'].includes(profile?.role ?? '')
+  if (!canDelete) {
+    return { error: 'Only Safety Officers and AST staff can delete photos' }
   }
 
   // Delete from storage first
