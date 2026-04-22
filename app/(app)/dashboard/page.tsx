@@ -21,9 +21,9 @@ export default async function DashboardPage() {
   const today = new Date().toISOString().split('T')[0]
   const monthStart = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
 
-  const isComplianceUser = ['safety_officer', 'ast_lead', 'trustee', 'responsible_person'].includes(profile.role)
+  const isComplianceUser = ['safety_officer', 'ast_lead', 'ast_member', 'trustee', 'responsible_person'].includes(profile.role)
   const isTrustee = profile.role === 'trustee'
-  const isAdminRole = ['ast_lead', 'safety_officer'].includes(profile.role)
+  const isAdminRole = ['ast_lead', 'safety_officer', 'ast_member'].includes(profile.role)
   const isVolunteer = profile.role === 'volunteer'
 
   // ── Compliance obligations (for compliance-aware roles) ──────────────────

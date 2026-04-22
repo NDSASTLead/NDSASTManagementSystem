@@ -7,6 +7,7 @@ import { createServiceClient } from '@/lib/supabase/service'
 import { z } from 'zod'
 import type { Priority, TaskStatus } from '@/lib/supabase/types'
 import { notifyTaskAssigned, notifyPublicSubmission } from '@/lib/notifications/email'
+import { scheduleNextComplianceTask } from '@/lib/actions/compliance'
 
 // ============================================================
 // Schemas
@@ -173,10 +174,11 @@ export async function updateTaskStatus(
     if (completionNotes) update.completion_notes = completionNotes
   }
 
-  // Fetch the task (including template → compliance_obligation link) before updating
+  // Fetch the task — check both direct compliance_obligation_id (new path)
+  // and template → compliance_obligation (legacy path)
   const { data: task } = await supabase
     .from('tasks')
-    .select('id, template_id, maintenance_templates(id, compliance_obligation_id)')
+    .select('id, template_id, compliance_obligation_id, maintenance_templates(id, compliance_obligation_id)')
     .eq('id', taskId)
     .single()
 
@@ -198,12 +200,16 @@ export async function updateTaskStatus(
     is_internal: true,
   })
 
-  // Auto-create compliance record when a template task with a linked obligation is completed
+  // Auto-create compliance record and schedule next task when a compliance task is completed.
+  // Checks the direct compliance_obligation_id on the task first (tasks created by the
+  // auto-scheduler), then falls back to the legacy template → obligation path.
   if (status === 'complete' && task) {
     const template = Array.isArray(task.maintenance_templates)
       ? task.maintenance_templates[0]
       : (task.maintenance_templates as any)
-    const obligationId = template?.compliance_obligation_id
+    const obligationId =
+      (task as any).compliance_obligation_id ?? template?.compliance_obligation_id ?? null
+
     if (obligationId) {
       await supabase.from('compliance_records').insert({
         obligation_id: obligationId,
@@ -212,7 +218,11 @@ export async function updateTaskStatus(
         task_id: taskId,
         notes: completionNotes ?? null,
       })
+      // Auto-schedule the next occurrence — this updates the existing open task's
+      // due date or creates a fresh one for the next period.
+      await scheduleNextComplianceTask(obligationId)
       revalidatePath('/compliance')
+      revalidatePath(`/compliance/${obligationId}`)
     }
   }
 

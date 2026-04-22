@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
 import { getSignedUrls } from '@/lib/actions/attachments'
 import { redirect, notFound } from 'next/navigation'
+import Link from 'next/link'
 import { PriorityBadge } from '@/components/shared/PriorityBadge'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { PhotoGallery } from '@/components/shared/PhotoGallery'
@@ -10,7 +11,7 @@ import { TaskActions } from '@/components/tasks/TaskActions'
 import { TaskComments } from '@/components/tasks/TaskComments'
 import { TaskEditButton } from '@/components/tasks/TaskEditButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { MapPin, Calendar, User, Tag } from 'lucide-react'
+import { MapPin, Calendar, User, Tag, ShieldCheck } from 'lucide-react'
 import type { TaskWithRelations, TaskCommentWithAuthor, TaskAttachment } from '@/lib/supabase/types'
 import { getDisplayName } from '@/lib/utils'
 
@@ -58,6 +59,17 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
   const typedTask = task as TaskWithRelations
   const typedComments = (comments ?? []) as TaskCommentWithAuthor[]
 
+  // If this task is linked to a compliance obligation, fetch its name for the banner
+  let complianceObligation: { id: string; name: string } | null = null
+  if ((task as any).compliance_obligation_id) {
+    const { data: obl } = await supabase
+      .from('compliance_obligations')
+      .select('id, name')
+      .eq('id', (task as any).compliance_obligation_id)
+      .single()
+    complianceObligation = obl ?? null
+  }
+
   // Get all profiles for assignment (ast_lead only)
   let assignableProfiles: { id: string; full_name: string; display_name: string | null }[] = []
   if (['ast_lead', 'safety_officer'].includes(profile.role)) {
@@ -95,6 +107,21 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
     <div className="max-w-2xl mx-auto space-y-4">
       {/* Back link */}
       <a href="/tasks" className="text-sm text-purple-700 hover:underline">← Back to tasks</a>
+
+      {/* Compliance requirement banner */}
+      {complianceObligation && (
+        <Link
+          href={`/compliance/${complianceObligation.id}`}
+          className="flex items-center gap-2 px-4 py-3 rounded-lg bg-purple-50 border border-purple-200 text-sm hover:bg-purple-100 transition-colors"
+        >
+          <ShieldCheck className="w-4 h-4 text-purple-600 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-semibold text-purple-500 uppercase tracking-wide block">Compliance requirement</span>
+            <span className="font-medium text-purple-900 truncate block">{complianceObligation.name}</span>
+          </div>
+          <span className="text-xs text-purple-500 flex-shrink-0">View requirement →</span>
+        </Link>
+      )}
 
       {/* Header */}
       <div>

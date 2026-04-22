@@ -49,8 +49,11 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
   if (task.status === 'complete' || task.status === 'cancelled') return null
 
   const isAstLead = currentProfile.role === 'ast_lead'
+  // AST staff (lead, safety officer, member) can act on any task;
+  // others can only act if personally assigned
+  const isAstStaff = ['ast_lead', 'safety_officer', 'ast_member'].includes(currentProfile.role)
   const isAssignedToMe = task.assigned_to === currentProfile.id
-  const canAct = isAssignedToMe || isAstLead
+  const canAct = isAssignedToMe || isAstStaff
 
   function openAction(action: PendingAction) {
     setComment('')
@@ -338,7 +341,7 @@ export function TaskActions({ task, currentProfile, assignableProfiles }: Props)
           </div>
         )}
 
-        {!canAct && !isAstLead && (
+        {!canAct && !isAstStaff && (
           <p className="text-sm text-gray-500 text-center py-2">
             This task is assigned to someone else. Contact your AST lead to reassign it.
           </p>

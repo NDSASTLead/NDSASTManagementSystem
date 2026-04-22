@@ -26,7 +26,7 @@ import type {
 //  4b. If next_due exists AND no task      → create new task.
 //  4c. If no next_due (no records)         → nothing to do.
 // ============================================================
-async function scheduleNextComplianceTask(obligationId: string) {
+export async function scheduleNextComplianceTask(obligationId: string) {
   // Use service client so this works regardless of the calling
   // user's RLS scope (e.g. responsible_person adding a record).
   const supabase = createServiceClient()
