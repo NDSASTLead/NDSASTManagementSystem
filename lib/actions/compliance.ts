@@ -4,12 +4,103 @@ import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
 import { createServiceClient } from '@/lib/supabase/service'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
-import { calculateRAG, getNextDue } from '@/lib/compliance-utils'
+import { calculateRAG, getNextDue, getFrequencyDays } from '@/lib/compliance-utils'
 import type {
   ComplianceObligation,
   ComplianceObligationWithStatus,
   ComplianceRecord,
 } from '@/lib/supabase/types'
+
+// ============================================================
+// scheduleNextComplianceTask (internal helper)
+//
+// Called every time a compliance record is added, updated or
+// deleted.  Ensures there is always exactly ONE open scheduled
+// task in the task system for the obligation's next due date.
+//
+// Logic:
+//  1. Fetch the obligation + its latest completion record.
+//  2. Calculate next_due from that record.
+//  3. Find any existing open compliance task linked to the obligation.
+//  4a. If next_due exists AND task exists  → update due_date + title.
+//  4b. If next_due exists AND no task      → create new task.
+//  4c. If no next_due (no records)         → nothing to do.
+// ============================================================
+async function scheduleNextComplianceTask(obligationId: string) {
+  // Use service client so this works regardless of the calling
+  // user's RLS scope (e.g. responsible_person adding a record).
+  const supabase = createServiceClient()
+
+  // Fetch obligation + its latest record
+  const { data: obligation } = await supabase
+    .from('compliance_obligations')
+    .select(`
+      id, name, site_id, frequency, frequency_days,
+      legislation_ref, owner_profile_id, category
+    `)
+    .eq('id', obligationId)
+    .single()
+
+  if (!obligation) return
+
+  const { data: records } = await supabase
+    .from('compliance_records')
+    .select('id, completed_at')
+    .eq('obligation_id', obligationId)
+    .order('completed_at', { ascending: false })
+    .limit(1)
+
+  const latestRecord = records?.[0] ?? null
+
+  // No records yet — nothing to schedule
+  if (!latestRecord) return
+
+  const nextDue = getNextDue(
+    obligation as ComplianceObligation,
+    latestRecord as ComplianceRecord,
+  )
+  if (!nextDue) return
+
+  const dueDateStr = nextDue.toISOString().split('T')[0]
+  const taskTitle = `[Compliance] ${obligation.name}`
+
+  // Look for an existing open task tied to this obligation
+  const { data: existing } = await supabase
+    .from('tasks')
+    .select('id')
+    .eq('compliance_obligation_id', obligationId)
+    .not('status', 'in', '("complete","cancelled")')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (existing) {
+    // Update the due date (completion date may have changed)
+    await supabase
+      .from('tasks')
+      .update({
+        due_date: dueDateStr,
+        title: taskTitle,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', existing.id)
+  } else {
+    // Create a fresh scheduled task for the next occurrence
+    await supabase.from('tasks').insert({
+      site_id: obligation.site_id,
+      title: taskTitle,
+      task_type: 'scheduled',
+      status: 'open',
+      priority: 'medium',
+      is_compliance: true,
+      legislation_ref: obligation.legislation_ref ?? null,
+      assigned_to: obligation.owner_profile_id ?? null,
+      due_date: dueDateStr,
+      compliance_obligation_id: obligationId,
+      public_submission: false,
+    })
+  }
+}
 
 // ============================================================
 // getComplianceObligations
@@ -301,9 +392,13 @@ export async function addComplianceRecord(
     return { error: error.message }
   }
 
+  // Auto-schedule the next occurrence as a task
+  await scheduleNextComplianceTask(data.obligation_id)
+
   revalidatePath('/compliance')
   revalidatePath(`/compliance/${data.obligation_id}`)
   revalidatePath('/dashboard')
+  revalidatePath('/tasks')
   return { success: true, record }
 }
 
@@ -341,9 +436,15 @@ export async function updateComplianceRecord(
 
   if (error) return { error: error.message }
 
+  // Recalculate next-due task in case completed_at changed
+  if (record?.obligation_id) {
+    await scheduleNextComplianceTask(record.obligation_id)
+  }
+
   revalidatePath('/compliance')
   if (record?.obligation_id) {
     revalidatePath(`/compliance/${record.obligation_id}`)
+    revalidatePath('/tasks')
   }
   return { success: true }
 }
@@ -381,9 +482,16 @@ export async function deleteComplianceRecord(id: string) {
       .remove([record.evidence_path])
   }
 
+  // Recalculate next-due task based on the new latest record
+  // (deletion may have removed the record we were scheduling from)
+  if (record?.obligation_id) {
+    await scheduleNextComplianceTask(record.obligation_id)
+  }
+
   revalidatePath('/compliance')
   if (record?.obligation_id) {
     revalidatePath(`/compliance/${record.obligation_id}`)
+    revalidatePath('/tasks')
   }
   revalidatePath('/dashboard')
   return { success: true }

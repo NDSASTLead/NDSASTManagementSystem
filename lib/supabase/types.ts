@@ -106,6 +106,7 @@ export interface Task {
   reviewed_by: string | null
   completion_notes: string | null
   template_id: string | null
+  compliance_obligation_id: string | null
   created_at: string
   updated_at: string
 }
