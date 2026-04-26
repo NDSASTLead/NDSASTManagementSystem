@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/service'
 import { getCurrentProfile } from '@/lib/supabase/helpers'
 import { redirect } from 'next/navigation'
 import { TaskCreateForm } from '@/components/tasks/TaskCreateForm'
@@ -7,31 +8,37 @@ export default async function NewTaskPage() {
   const supabase = await createClient()
   const profile = await getCurrentProfile()
   if (!profile) redirect('/login')
-  if (profile.role === 'trustee') redirect('/dashboard')
+
+  // Use service client for site/profile lookups to avoid cookie-based auth
+  // context issues that can silently return empty results in server components.
+  const service = createServiceClient()
 
   // Get sites this user can see
-  let sitesQuery = supabase.from('sites').select('id, name, short_name').eq('is_active', true)
+  let sitesQuery = service.from('sites').select('id, name, short_name').eq('is_active', true).order('name')
 
   if (['volunteer', 'responsible_person'].includes(profile.role)) {
-    const { data: ps } = await supabase
+    const { data: ps } = await service
       .from('profile_sites')
       .select('site_id')
       .eq('profile_id', profile.id)
     const siteIds = (ps ?? []).map(r => r.site_id)
     if (siteIds.length) {
       sitesQuery = sitesQuery.in('id', siteIds)
+    } else {
+      // No site assignments — show no sites rather than all sites
+      sitesQuery = sitesQuery.in('id', ['00000000-0000-0000-0000-000000000000'])
     }
   }
 
   const [{ data: sites }, { data: categories }] = await Promise.all([
     sitesQuery,
-    supabase.from('asset_categories').select('id, name').order('name'),
+    service.from('asset_categories').select('id, name').order('name'),
   ])
 
   // Get buildings for first site
   const firstSiteId = sites?.[0]?.id
   const { data: buildings } = firstSiteId
-    ? await supabase.from('buildings').select('id, site_id, name').eq('site_id', firstSiteId).eq('is_active', true)
+    ? await service.from('buildings').select('id, site_id, name').eq('site_id', firstSiteId).eq('is_active', true)
     : { data: [] }
 
   return (

@@ -29,7 +29,9 @@
       "Read(//c//**)",
       "Bash(gh pr:*)",
       "Bash(where gh:*)",
-      "Read(//c/Program Files/**)"
+      "Read(//c/Program Files/**)",
+      "mcp__a222d90f-5ead-4b4f-9408-add28ecc343b__list_migrations",
+      "mcp__a222d90f-5ead-4b4f-9408-add28ecc343b__get_logs"
     ]
   }
 }

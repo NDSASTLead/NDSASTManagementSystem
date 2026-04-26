@@ -12,9 +12,10 @@ interface Props {
   selectedSiteId?: string
   selectedBuildingId?: string
   statusFilter?: string
+  complianceFilter?: boolean
 }
 
-export function TaskLocationFilter({ sites, buildings, selectedSiteId, selectedBuildingId, statusFilter }: Props) {
+export function TaskLocationFilter({ sites, buildings, selectedSiteId, selectedBuildingId, statusFilter, complianceFilter }: Props) {
   const router = useRouter()
 
   function buildUrl(siteId?: string, buildingId?: string) {
@@ -22,6 +23,7 @@ export function TaskLocationFilter({ sites, buildings, selectedSiteId, selectedB
     if (statusFilter) params.set('status', statusFilter)
     if (siteId) params.set('site', siteId)
     if (buildingId) params.set('building', buildingId)
+    if (complianceFilter) params.set('compliance', '1')
     const qs = params.toString()
     return qs ? `/tasks?${qs}` : '/tasks'
   }

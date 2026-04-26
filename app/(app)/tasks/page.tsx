@@ -14,7 +14,7 @@ import { TaskLocationFilter } from '@/components/tasks/TaskLocationFilter'
 export default async function TasksPage({
   searchParams,
 }: {
-  searchParams: Promise<{ status?: string; site?: string; building?: string }>
+  searchParams: Promise<{ status?: string; site?: string; building?: string; compliance?: string }>
 }) {
   const supabase = await createClient()
   const profile = await getCurrentProfile()
@@ -24,6 +24,7 @@ export default async function TasksPage({
   const statusFilter = params.status
   const siteFilter = params.site
   const buildingFilter = params.building
+  const complianceFilter = params.compliance === '1'
 
   const [{ data: sites }, { data: buildings }] = await Promise.all([
     supabase.from('sites').select('id, short_name').eq('is_active', true).order('short_name'),
@@ -43,6 +44,7 @@ export default async function TasksPage({
   if (statusFilter) query = query.eq('status', statusFilter)
   if (siteFilter) query = query.eq('site_id', siteFilter)
   if (buildingFilter) query = query.eq('building_id', buildingFilter)
+  if (complianceFilter) query = query.eq('is_compliance', true)
 
   const { data: tasks } = await query
   const typedTasks = (tasks ?? []) as TaskWithRelations[]
@@ -61,14 +63,12 @@ export default async function TasksPage({
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Tasks</h1>
-        {profile.role !== 'trustee' && (
-          <Button asChild className="bg-purple-700 hover:bg-purple-800">
-            <Link href="/tasks/new">
-              <PlusCircle className="w-4 h-4 mr-2" />
-              Report a problem
-            </Link>
-          </Button>
-        )}
+        <Button asChild className="bg-purple-700 hover:bg-purple-800">
+          <Link href="/tasks/new">
+            <PlusCircle className="w-4 h-4 mr-2" />
+            Report a problem
+          </Link>
+        </Button>
       </div>
 
       {/* Location filter */}
@@ -78,15 +78,17 @@ export default async function TasksPage({
         selectedSiteId={siteFilter}
         selectedBuildingId={buildingFilter}
         statusFilter={statusFilter}
+        complianceFilter={complianceFilter}
       />
 
-      {/* Status filter tabs */}
+      {/* Status filter tabs + compliance toggle */}
       <div className="flex gap-2 overflow-x-auto pb-1">
         {statusTabs.map(tab => {
           const params = new URLSearchParams()
           if (tab.value) params.set('status', tab.value)
           if (siteFilter) params.set('site', siteFilter)
           if (buildingFilter) params.set('building', buildingFilter)
+          if (complianceFilter) params.set('compliance', '1')
           const qs = params.toString()
           const href = qs ? `/tasks?${qs}` : '/tasks'
           const active = statusFilter === tab.value
@@ -104,6 +106,30 @@ export default async function TasksPage({
             </Link>
           )
         })}
+
+        {/* Compliance toggle — separated by a divider */}
+        <span className="border-l border-gray-200 mx-1 self-stretch" />
+        {(() => {
+          const p = new URLSearchParams()
+          if (statusFilter) p.set('status', statusFilter)
+          if (siteFilter) p.set('site', siteFilter)
+          if (buildingFilter) p.set('building', buildingFilter)
+          if (!complianceFilter) p.set('compliance', '1')
+          const qs = p.toString()
+          const href = qs ? `/tasks?${qs}` : '/tasks'
+          return (
+            <Link
+              href={href}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                complianceFilter
+                  ? 'bg-purple-700 text-white'
+                  : 'bg-white text-gray-600 border border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              🛡 Compliance
+            </Link>
+          )
+        })()}
       </div>
 
       {/* Task list */}

@@ -60,6 +60,15 @@ export async function createTask(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Fetch the profile to get role — use service client to avoid RLS complications
+  const service = createServiceClient()
+  const { data: profile } = await service
+    .from('profiles')
+    .select('id, role')
+    .eq('id', user.id)
+    .single()
+  if (!profile) redirect('/login')
+
   const raw = {
     site_id: formData.get('site_id'),
     building_id: formData.get('building_id'),
@@ -75,7 +84,22 @@ export async function createTask(formData: FormData) {
     return { error: parsed.error.issues[0].message }
   }
 
-  const { error } = await supabase.from('tasks').insert({
+  // For site-limited roles, verify the user actually has access to the submitted site
+  if (['volunteer', 'responsible_person'].includes(profile.role)) {
+    const { data: siteAccess } = await service
+      .from('profile_sites')
+      .select('site_id')
+      .eq('profile_id', user.id)
+      .eq('site_id', parsed.data.site_id)
+      .maybeSingle()
+    if (!siteAccess) {
+      return { error: 'You do not have access to that site.' }
+    }
+  }
+
+  // Use service client for the insert so auth-context issues in server actions
+  // cannot block a legitimately authorised user from creating tasks.
+  const { error } = await service.from('tasks').insert({
     ...parsed.data,
     task_type: 'reactive',
     created_by: user.id,
@@ -84,7 +108,7 @@ export async function createTask(formData: FormData) {
 
   if (error) {
     console.error('createTask error:', error)
-    return { error: 'Failed to create task. Please try again.' }
+    return { error: `Failed to create task: ${error.message}` }
   }
 
   revalidatePath('/tasks')
