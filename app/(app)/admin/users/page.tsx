@@ -5,7 +5,7 @@ import { InviteUserForm } from '@/components/people/InviteUserForm'
 import { UserRow } from '@/components/people/UserRow'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users } from 'lucide-react'
-import type { Profile } from '@/lib/supabase/types'
+import type { Profile, ProfileResponsibility, Site } from '@/lib/supabase/types'
 
 export default async function PeoplePage() {
   const profile = await getCurrentProfile()
@@ -13,12 +13,28 @@ export default async function PeoplePage() {
   if (profile.role !== 'ast_lead') redirect('/dashboard')
 
   const supabase = await createClient()
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('*')
-    .order('full_name')
+
+  const [
+    { data: profiles },
+    { data: sites },
+    { data: responsibilities },
+  ] = await Promise.all([
+    supabase.from('profiles').select('*').order('full_name'),
+    supabase.from('sites').select('id, name, short_name').eq('is_active', true).order('name'),
+    supabase.from('profile_responsibilities').select('*'),
+  ])
 
   const people = (profiles ?? []) as Profile[]
+  const allSites = (sites ?? []) as Site[]
+  const allResponsibilities = (responsibilities ?? []) as ProfileResponsibility[]
+
+  // Group responsibilities by profile_id for quick lookup
+  const responsibilitiesByProfile: Record<string, ProfileResponsibility[]> = {}
+  for (const r of allResponsibilities) {
+    if (!responsibilitiesByProfile[r.profile_id]) responsibilitiesByProfile[r.profile_id] = []
+    responsibilitiesByProfile[r.profile_id].push(r)
+  }
+
   const active = people.filter(p => p.is_active)
   const inactive = people.filter(p => !p.is_active)
 
@@ -56,7 +72,13 @@ export default async function PeoplePage() {
           ) : (
             <div className="divide-y divide-gray-100">
               {active.map(p => (
-                <UserRow key={p.id} person={p} currentUserId={profile.id} />
+                <UserRow
+                  key={p.id}
+                  person={p}
+                  currentUserId={profile.id}
+                  sites={allSites}
+                  responsibilities={responsibilitiesByProfile[p.id] ?? []}
+                />
               ))}
             </div>
           )}
@@ -75,7 +97,13 @@ export default async function PeoplePage() {
           <CardContent className="p-0">
             <div className="divide-y divide-gray-100">
               {inactive.map(p => (
-                <UserRow key={p.id} person={p} currentUserId={profile.id} />
+                <UserRow
+                  key={p.id}
+                  person={p}
+                  currentUserId={profile.id}
+                  sites={allSites}
+                  responsibilities={responsibilitiesByProfile[p.id] ?? []}
+                />
               ))}
             </div>
           </CardContent>
