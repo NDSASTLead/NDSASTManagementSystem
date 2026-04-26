@@ -7,6 +7,7 @@ import { MobileHeader } from '@/components/layout/MobileHeader'
 import { Toaster } from '@/components/ui/sonner'
 import { getDisplayName } from '@/lib/utils'
 import { ProfilePromptBanner } from '@/components/shared/ProfilePromptBanner'
+import { PageTitleProvider } from '@/lib/page-title-context'
 import type { Profile } from '@/lib/supabase/types'
 
 // Show the profile prompt banner on every fresh login, but only while the
@@ -33,22 +34,24 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const displayName = getDisplayName(profile)
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <Sidebar role={profile.role} displayName={displayName} picturePath={profile.profile_picture_path} />
+    <PageTitleProvider>
+      <div className="flex min-h-screen bg-gray-50">
+        <Sidebar role={profile.role} displayName={displayName} picturePath={profile.profile_picture_path} />
 
-      <main className="flex-1 flex flex-col min-w-0">
-        {/* Mobile header — sticky, pathname-aware */}
-        <MobileHeader displayName={displayName} picturePath={profile.profile_picture_path} />
+        <main className="flex-1 flex flex-col min-w-0">
+          {/* Mobile header — sticky, pathname-aware, title-aware */}
+          <MobileHeader displayName={displayName} picturePath={profile.profile_picture_path} />
 
-        {shouldShowProfilePrompt(profile, user.last_sign_in_at) && <ProfilePromptBanner />}
+          {shouldShowProfilePrompt(profile, user.last_sign_in_at) && <ProfilePromptBanner />}
 
-        <div className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
-          {children}
-        </div>
-      </main>
+          <div className="flex-1 p-4 md:p-8 pb-24 md:pb-8">
+            {children}
+          </div>
+        </main>
 
-      <MobileNav role={profile.role} />
-      <Toaster richColors position="top-right" />
-    </div>
+        <MobileNav role={profile.role} />
+        <Toaster richColors position="top-right" />
+      </div>
+    </PageTitleProvider>
   )
 }

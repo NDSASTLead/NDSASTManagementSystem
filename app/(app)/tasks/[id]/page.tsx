@@ -12,6 +12,7 @@ import { TaskComments } from '@/components/tasks/TaskComments'
 import { TaskEditButton } from '@/components/tasks/TaskEditButton'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { MapPin, Calendar, User, Tag, ShieldCheck } from 'lucide-react'
+import { SetPageTitle } from '@/components/shared/SetPageTitle'
 import type { TaskWithRelations, TaskCommentWithAuthor, TaskAttachment } from '@/lib/supabase/types'
 import { getDisplayName } from '@/lib/utils'
 
@@ -105,6 +106,8 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
+      <SetPageTitle title={typedTask.title} />
+
       {/* Back link */}
       <a href="/tasks" className="text-sm text-purple-700 hover:underline">← Back to tasks</a>
 

@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { Avatar } from '@/components/shared/Avatar'
+import { usePageTitle } from '@/lib/page-title-context'
 
 interface Props {
   displayName: string
@@ -52,6 +53,7 @@ function getDetailConfig(pathname: string): DetailConfig | null {
 
 export function MobileHeader({ displayName, picturePath }: Props) {
   const pathname = usePathname()
+  const { title } = usePageTitle()
 
   const detail = getDetailConfig(pathname)
 
@@ -64,33 +66,42 @@ export function MobileHeader({ displayName, picturePath }: Props) {
     'NDS Maintenance'
 
   return (
-    <header className="md:hidden sticky top-0 z-40 flex items-center gap-3 px-4 py-3 bg-white border-b border-gray-200 shadow-sm">
+    <header className="md:hidden sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+      <div className="flex items-center gap-2 px-4 py-3">
 
-      {/* Left: back arrow on detail pages, logo on top-level pages */}
-      {detail ? (
-        <Link
-          href={detail.back}
-          className="flex items-center gap-1.5 text-purple-700 font-medium text-sm flex-shrink-0 -ml-1 px-1 py-1"
-          aria-label={`Back to ${detail.label}`}
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>{detail.label}</span>
+        {/* Left: back arrow on detail pages, logo on top-level pages */}
+        {detail ? (
+          <Link
+            href={detail.back}
+            className="flex items-center gap-1 text-purple-700 font-medium text-sm flex-shrink-0 -ml-1 px-1 py-1"
+            aria-label={`Back to ${detail.label}`}
+          >
+            <ArrowLeft className="w-4 h-4" />
+            <span className="text-xs">{detail.label}</span>
+          </Link>
+        ) : (
+          <div className="w-7 h-7 bg-purple-600 rounded-md flex items-center justify-center flex-shrink-0">
+            <span className="text-white font-bold text-xs">N</span>
+          </div>
+        )}
+
+        {/* Centre: item title (detail pages) or section name (list pages) */}
+        <p className="flex-1 font-semibold text-gray-900 text-sm truncate min-w-0">
+          {detail ? (title || '') : sectionTitle}
+        </p>
+
+        {/* Right: avatar → account */}
+        <Link href="/account" className="flex-shrink-0" aria-label="My account">
+          <Avatar name={displayName} picturePath={picturePath} size="sm" />
         </Link>
-      ) : (
-        <div className="w-7 h-7 bg-purple-600 rounded-md flex items-center justify-center flex-shrink-0">
-          <span className="text-white font-bold text-xs">N</span>
+      </div>
+
+      {/* Item subtitle row — section label on detail pages once we have a title */}
+      {detail && title && (
+        <div className="px-4 pb-1.5">
+          <p className="text-xs text-gray-400">{detail.label}</p>
         </div>
       )}
-
-      {/* Centre: current page / section title */}
-      <p className="flex-1 font-semibold text-gray-900 text-sm truncate">
-        {detail ? '' : sectionTitle}
-      </p>
-
-      {/* Right: avatar → account */}
-      <Link href="/account" className="flex-shrink-0" aria-label="My account">
-        <Avatar name={displayName} picturePath={picturePath} size="sm" />
-      </Link>
     </header>
   )
 }

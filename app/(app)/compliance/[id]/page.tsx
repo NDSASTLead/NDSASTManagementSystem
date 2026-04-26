@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/server'
 import { getComplianceObligation, getComplianceEvidenceUrl, getProfileResponsibilities, getComplianceComments } from '@/lib/actions/compliance'
 import { getProfileScope, CATEGORY_LABELS, formatFrequency, formatDueLabel } from '@/lib/compliance-utils'
 import { RAGBadge } from '@/components/compliance/RAGBadge'
+import { SetPageTitle } from '@/components/shared/SetPageTitle'
 import { RecordForm } from '@/components/compliance/RecordForm'
 import { EditRecordForm } from '@/components/compliance/EditRecordForm'
 import { ComplianceComments } from '@/components/compliance/ComplianceComments'
@@ -65,6 +66,8 @@ export default async function ComplianceDetailPage({
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      <SetPageTitle title={obligation.name} />
+
       {/* Back */}
       <Link href="/compliance" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
         <ArrowLeft className="w-4 h-4" />
