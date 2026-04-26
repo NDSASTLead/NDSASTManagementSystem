@@ -533,6 +533,7 @@ export async function setProfileResponsibilities(
 
   const supabase = await createClient()
 
+  // Replace compliance responsibilities
   await supabase.from('profile_responsibilities').delete().eq('profile_id', profileId)
 
   if (responsibilities.length > 0) {
@@ -542,6 +543,17 @@ export async function setProfileResponsibilities(
       category: r.category ?? null,
     }))
     const { error } = await supabase.from('profile_responsibilities').insert(rows)
+    if (error) return { error: error.message }
+  }
+
+  // Keep profile_sites in sync so task RLS (user_has_site_access) also works.
+  // Derive the unique set of sites from the responsibilities.
+  await supabase.from('profile_sites').delete().eq('profile_id', profileId)
+
+  const uniqueSiteIds = [...new Set(responsibilities.map((r) => r.site_id))]
+  if (uniqueSiteIds.length > 0) {
+    const siteRows = uniqueSiteIds.map((site_id) => ({ profile_id: profileId, site_id }))
+    const { error } = await supabase.from('profile_sites').insert(siteRows)
     if (error) return { error: error.message }
   }
 
