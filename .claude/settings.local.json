@@ -31,7 +31,8 @@
       "Bash(where gh:*)",
       "Read(//c/Program Files/**)",
       "mcp__a222d90f-5ead-4b4f-9408-add28ecc343b__list_migrations",
-      "mcp__a222d90f-5ead-4b4f-9408-add28ecc343b__get_logs"
+      "mcp__a222d90f-5ead-4b4f-9408-add28ecc343b__get_logs",
+      "mcp__875b3a8c-24b1-4ec7-b072-8a287d358dea__deploy_to_vercel"
     ]
   }
 }
