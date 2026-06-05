@@ -337,13 +337,11 @@
 
 ---
 
----
+## Requests
 
-## Completed Phases
+> Things to consider in the next Claude Code session. Not scheduled into a phase yet — review and decide whether to absorb into an existing phase or park.
 
----
-
-
-| [architecture/permissions.md](architecture/permissions.md) | Role permission matrix |
-
-| [architecture/permissions.md](architecture/permissions.md) | Role permission matrix |
+| Request | Context | Logged |
+|---------|---------|--------|
+| RAG status integration | Surface RAG (Red/Amber/Green) status on the trustee dashboard per site — already planned in Phase 5 but flagged as a priority to not lose sight of. | 2026-06-05 |
+| Middleware rename | Non-breaking: rename `middleware.ts` → `proxy.ts` per Next.js 16 deprecation warning (noted in DEV_NOTES.md #5). Quick win. | 2026-06-05 |
