@@ -130,7 +130,7 @@
 - [ ] Add DNS records to domain — SPF (merge into existing M365 record), DKIM (new subdomain entry) ⬅ **BLOCKED — Gary to assist with M365 DNS**
 - [ ] Domain verified in Resend dashboard
 - [ ] Confirm auth emails (magic link, invite, password reset) route through Resend in production
-- [ ] Test full invite and magic link flow after DNS propagation
+- [ ] Test full invoke and magic link flow after DNS propagation
 
 ### Improved Task Views
 - [ ] Task list: add search / filter by building, category, assignee, and date range
@@ -345,3 +345,6 @@
 |---------|---------|--------|
 | RAG status integration | Surface RAG (Red/Amber/Green) status on the trustee dashboard per site — already planned in Phase 5 but flagged as a priority to not lose sight of. | 2026-06-05 |
 | Middleware rename | Non-breaking: rename `middleware.ts` → `proxy.ts` per Next.js 16 deprecation warning (noted in DEV_NOTES.md #5). Quick win. | 2026-06-05 |
+| Self-assign | Volunteers/owners should be able to assign a task to themselves without waiting for an ast_lead. Currently only ast_lead can assign. Needs permission matrix update, RLS change, server action update, and UI "claim this task" button. Requested by Andy. | 2026-06-05 |
+| Quick fixes flag | New boolean flag on tasks (e.g. `is_quick_fix`) to mark a task as a small/quick job. Visible to all logged-in users on the task list and detail page. No permission complexity — read-only for all, settable by ast_lead (or possibly anyone — decide in Claude Code). Requested by Andy. | 2026-06-05 |
+| Permissions review | Review `docs/architecture/permissions.md` to check it still reflects reality and consider whether the volunteer/owner role distinction should be activated. Context: Andy's self-assign request suggests volunteers need more autonomy than currently designed. | 2026-06-05 |
