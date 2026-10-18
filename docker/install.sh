@@ -70,6 +70,7 @@ set_env_value API_EXTERNAL_URL "http://${LAN_HOST}:8000/auth/v1"
 set_env_value SITE_URL "http://${LAN_HOST}:3000"
 set_env_value ADDITIONAL_REDIRECT_URLS "http://localhost:3000/**,http://${LAN_HOST}:3000/**"
 set_env_value APP_PUBLIC_URL "http://${LAN_HOST}:3000"
+set_env_value ENABLE_EMAIL_AUTOCONFIRM true
 
 echo "Starting Supabase services so the database extensions and Storage schema are initialized..."
 (

@@ -28,30 +28,34 @@ export default function LoginForm({ passwordReset = false }: { passwordReset?: b
 
     const supabase = createClient()
 
-    if (mode === 'password') {
-      const { error } = await supabase.auth.signInWithPassword({ email, password })
-      if (error) {
-        setError(error.message ?? 'Invalid email or password.')
+    try {
+      if (mode === 'password') {
+        const { error } = await supabase.auth.signInWithPassword({ email, password })
+        if (error) {
+          setError(error.message ?? 'Invalid email or password.')
+        } else {
+          router.push('/dashboard')
+          router.refresh()
+        }
       } else {
-        router.push('/dashboard')
-        router.refresh()
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            shouldCreateUser: false,
+          },
+        })
+        if (error) {
+          setError(error.message ?? 'Something went wrong. Please check your email address and try again.')
+        } else {
+          setSent(true)
+        }
       }
-    } else {
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-          shouldCreateUser: false,
-        },
-      })
-      if (error) {
-        setError(error.message ?? 'Something went wrong. Please check your email address and try again.')
-      } else {
-        setSent(true)
-      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not reach the local sign-in service. Check the Supabase URL and try again.')
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   function switchMode(next: Mode) {
