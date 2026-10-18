@@ -20,7 +20,7 @@ async function magicLink(email: string, redirectPath: string): Promise<string> {
   const fallback = `${APP_URL}${redirectPath}`
   try {
     const admin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_INTERNAL_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
     const { data, error } = await admin.auth.admin.generateLink({

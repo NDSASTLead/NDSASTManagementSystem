@@ -25,7 +25,10 @@ INSERT INTO compliance_records (
 )
 VALUES (
   gen_random_uuid(),
-  '0e86b4ac-ae0b-45cf-9a2d-9646a6bd58a9',   -- Fixed Wire Testing (EICR)
+  (SELECT id FROM compliance_obligations
+   WHERE site_id = 'a1b2c3d4-cafe-4000-a000-000000000001'
+     AND name = 'Fixed Wire Testing (EICR)'
+   ORDER BY created_at LIMIT 1),
   '2025-04-30T00:00:00Z',
   NULL,
   'Northants Electrical (contractor)',
@@ -45,7 +48,10 @@ INSERT INTO compliance_records (
 )
 VALUES (
   gen_random_uuid(),
-  'd50c26e4-79ee-4b1b-9e36-cfba98945a2f',   -- Fire Extinguisher Annual Service
+  (SELECT id FROM compliance_obligations
+   WHERE site_id = 'a1b2c3d4-cafe-4000-a000-000000000001'
+     AND name = 'Fire Extinguisher Annual Service'
+   ORDER BY created_at LIMIT 1),
   '2025-04-11T00:00:00Z',
   NULL,
   'Northants Fire (contractor)',
@@ -64,7 +70,10 @@ INSERT INTO compliance_records (
 )
 VALUES (
   gen_random_uuid(),
-  '59e32621-016f-444d-9a5d-3636f7444434',   -- First Aid Box Inspection
+  (SELECT id FROM compliance_obligations
+   WHERE site_id = 'a1b2c3d4-cafe-4000-a000-000000000001'
+     AND name = 'First Aid Box Inspection'
+   ORDER BY created_at LIMIT 1),
   '2025-04-09T00:00:00Z',
   NULL,
   NULL,
@@ -87,7 +96,8 @@ SET
   notes = 'URGENT: Pads and pre-kit went out of date October 2025. Battery status unknown — device may not be operational. Replace pads, pre-kit and check battery before next use. Flagged red in Overstone RAG Spreadsheet V3 (Debbie, 28 Mar 2026).',
   red_days = 7,
   updated_at = now()
-WHERE id = '90331bf8-26ab-4045-adf7-ca1cd8ef1a22';  -- AED (Defibrillator) Check
+WHERE site_id = 'a1b2c3d4-cafe-4000-a000-000000000001'
+  AND name = 'AED (Defibrillator) Check';
 
 -- 2b. Legionella obligations — no testing since 2022
 --     Spreadsheet row 76: "Records are showing no legionella testing on site since 2022"
@@ -95,13 +105,15 @@ UPDATE compliance_obligations
 SET
   notes = 'No recorded legionella testing on site since 2022. Set up a new testing contract. All taps to be numbered/labelled and added to a control register. Monthly testing regime required. Flagged in Overstone RAG Spreadsheet V3 (Debbie, 28 Mar 2026).',
   updated_at = now()
-WHERE id = 'ff89a8c1-038a-4497-9502-4e8517345366';  -- Legionella Water Temperature Check
+WHERE site_id = 'a1b2c3d4-cafe-4000-a000-000000000001'
+  AND name = 'Legionella Water Temperature Check';
 
 UPDATE compliance_obligations
 SET
   notes = 'No recorded legionella testing on site since 2022. All showers and low-use taps must be flushed and logged weekly. Set up numbered/labelled register for all outlets.',
   updated_at = now()
-WHERE id = '2acbb2b1-81b6-488f-a2e1-a3ef20ea842b';  -- Legionella Shower / Tap Flush
+WHERE site_id = 'a1b2c3d4-cafe-4000-a000-000000000001'
+  AND name = 'Legionella Shower / Tap Flush';
 
 -- 2c. Fire Evacuation Drill — documented drills (HQ03)
 --     Spreadsheet row 4: "Drills are undertaken, however not documented and kept."
@@ -109,7 +121,8 @@ UPDATE compliance_obligations
 SET
   notes = 'Drills have been undertaken but records not consistently kept. Ensure all future drills are documented and stored. Reference: HQ03.',
   updated_at = now()
-WHERE id = '95862898-38e2-4ed2-8464-4798c7ced836';  -- Fire Evacuation Drill
+WHERE site_id = 'a1b2c3d4-cafe-4000-a000-000000000001'
+  AND name = 'Fire Evacuation Drill';
 
 -- 2d. PAT Testing — status unknown, last tested 2018
 --     Spreadsheet row 9: "EET/PAT testing last tested 18/09/2018"
@@ -117,7 +130,8 @@ UPDATE compliance_obligations
 SET
   notes = 'Equipment last PAT tested 18 Sep 2018. Qualified contractor needed. An electrical asset register must be established so items are tracked and always tested. Flagged in Overstone RAG Spreadsheet V3.',
   updated_at = now()
-WHERE id = 'a98f9ecc-da2d-46ca-8f54-0811e61408dc';  -- PAT Testing
+WHERE site_id = 'a1b2c3d4-cafe-4000-a000-000000000001'
+  AND name = 'PAT Testing';
 
 -- ============================================================
 -- SECTION 3: NEW COMPLIANCE OBLIGATIONS (HQ-coded items)

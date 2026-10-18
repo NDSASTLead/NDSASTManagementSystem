@@ -8,9 +8,11 @@ Built with **Next.js 16**, **Supabase** (auth + database), **Tailwind CSS**, and
 
 ## Local Development
 
+For a fully local Docker setup (including the app, Supabase database, auth, and storage), run `./docker/install.sh` and see [docker/README.md](./docker/README.md). It does not require Node.js or Supabase CLI on the host.
+
 ### Prerequisites
 
-- [Node.js](https://nodejs.org/) v18 or later
+- [Node.js](https://nodejs.org/) v20.9 or later (only needed when running the app outside Docker)
 - npm (comes with Node.js)
 - A [Supabase](https://supabase.com) project (see [SETUP.md](./SETUP.md) for how to create one)
 - Git

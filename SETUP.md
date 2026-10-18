@@ -1,5 +1,7 @@
 # NDS Maintenance Tracker — Setup Guide
 
+For a fully local development environment with the app and Supabase stack running in Docker, use [docker/README.md](./docker/README.md). The hosted Supabase instructions below are for deployments that intentionally use a managed Supabase project.
+
 ---
 
 ## Step 1: Create a Supabase Project
