@@ -41,6 +41,16 @@ export function Sidebar({ role, displayName, picturePath }: SidebarProps) {
     { href: '/help',        label: 'How it works',      icon: HelpCircle,      roles: ['volunteer', 'responsible_person', 'safety_officer', 'ast_member', 'ast_lead', 'trustee'] },
   ].filter(l => l.roles.includes(role))
 
+  const isActive = (href: string) => {
+    if (href === '/tasks') {
+      return pathname === '/tasks'
+        || (pathname.startsWith('/tasks/')
+          && pathname !== '/tasks/new'
+          && !pathname.startsWith('/tasks/new/'))
+    }
+    return pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`))
+  }
+
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen sticky top-0 bg-gray-900 text-white overflow-hidden">
       <div className="flex items-center gap-3 px-6 py-5 border-b border-gray-700">
@@ -55,7 +65,7 @@ export function Sidebar({ role, displayName, picturePath }: SidebarProps) {
 
       <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {navLinks.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
+          const active = isActive(href)
           return (
             <Link
               key={href}

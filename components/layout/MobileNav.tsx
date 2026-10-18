@@ -34,11 +34,21 @@ export function MobileNav({ role }: MobileNavProps) {
     { href: '/settings', label: 'Settings', icon: Settings },
   ]
 
+  const isActive = (href: string) => {
+    if (href === '/tasks') {
+      return pathname === '/tasks'
+        || (pathname.startsWith('/tasks/')
+          && pathname !== '/tasks/new'
+          && !pathname.startsWith('/tasks/new/'))
+    }
+    return pathname === href || pathname.startsWith(`${href}/`)
+  }
+
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden">
       <div className="flex">
         {baseLinks.map(({ href, label, icon: Icon }) => {
-          const active = pathname.startsWith(href)
+          const active = isActive(href)
           return (
             <Link
               key={href}
