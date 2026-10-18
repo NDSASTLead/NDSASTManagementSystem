@@ -1,18 +1,20 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { ChevronDown, ChevronRight, Plus, ToggleLeft, ToggleRight, Pencil, X, Check } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ChevronDown, ChevronRight, Plus, ToggleLeft, ToggleRight, Pencil, X, Check, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { addTemplate, updateTemplate, toggleTemplateActive } from '@/lib/actions/maintenance-templates'
+import { addTemplate, deleteTemplate, updateTemplate, toggleTemplateActive } from '@/lib/actions/maintenance-templates'
 import { toast } from 'sonner'
-import type { Site, Building, MaintenanceTemplate } from '@/lib/supabase/types'
+import type { Site, Building, MaintenanceTemplate, AssetCategory } from '@/lib/supabase/types'
 
 interface Props {
   sites: (Site & { buildings: Building[]; templates: MaintenanceTemplate[] })[]
+  categories: AssetCategory[]
 }
 
 const FREQUENCIES = [
@@ -45,6 +47,7 @@ interface TemplateFormState {
   title: string
   description: string
   building_id: string
+  category_id: string
   priority: string
   frequency: string
   frequency_days: string
@@ -55,20 +58,20 @@ interface TemplateFormState {
 }
 
 const emptyForm = (): TemplateFormState => ({
-  title: '', description: '', building_id: '', priority: 'medium',
+  title: '', description: '', building_id: '', category_id: '', priority: 'medium',
   frequency: 'monthly', frequency_days: '', notice_days: '14',
   is_compliance: false, legislation_ref: '', assign_to_role: '',
 })
 
 function TemplateForm({
-  siteId,
   buildings,
+  categories,
   initial,
   onSave,
   onCancel,
 }: {
-  siteId: string
   buildings: Building[]
+  categories: AssetCategory[]
   initial?: TemplateFormState
   onSave: (data: TemplateFormState) => Promise<void>
   onCancel: () => void
@@ -143,6 +146,21 @@ function TemplateForm({
           </Select>
         </div>
       </div>
+
+      {categories.length > 0 && (
+        <div>
+          <Label className="text-xs font-medium text-gray-600">Category (optional)</Label>
+          <Select value={form.category_id || '_none'} onValueChange={v => set('category_id')(v === '_none' ? '' : v)}>
+            <SelectTrigger className="mt-1 h-8 text-sm"><SelectValue placeholder="No category" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="_none">No category</SelectItem>
+              {categories.map(category => (
+                <SelectItem key={category.id} value={category.id}>{category.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {buildings.length > 0 && (
         <div>
@@ -228,13 +246,16 @@ function TemplateForm({
 
 function SiteSection({
   site,
+  categories,
 }: {
   site: Props['sites'][number]
+  categories: AssetCategory[]
 }) {
   const [open, setOpen] = useState(true)
   const [adding, setAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [, startTransition] = useTransition()
+  const router = useRouter()
 
   const handleAdd = async (form: TemplateFormState) => {
     const res = await addTemplate({
@@ -242,6 +263,7 @@ function SiteSection({
       title: form.title,
       description: form.description || null,
       building_id: form.building_id || null,
+      category_id: form.category_id || null,
       priority: form.priority as any,
       frequency: form.frequency as any,
       frequency_days: form.frequency_days ? parseInt(form.frequency_days) : null,
@@ -253,6 +275,7 @@ function SiteSection({
     if (res?.error) { toast.error(res.error); return }
     toast.success('Template added')
     setAdding(false)
+    router.refresh()
   }
 
   const handleEdit = async (id: string, form: TemplateFormState) => {
@@ -260,6 +283,7 @@ function SiteSection({
       title: form.title,
       description: form.description || null,
       building_id: form.building_id || null,
+      category_id: form.category_id || null,
       priority: form.priority as any,
       frequency: form.frequency as any,
       frequency_days: form.frequency_days ? parseInt(form.frequency_days) : null,
@@ -271,13 +295,29 @@ function SiteSection({
     if (res?.error) { toast.error(res.error); return }
     toast.success('Template updated')
     setEditingId(null)
+    router.refresh()
   }
 
   const handleToggle = (id: string, active: boolean) => {
     startTransition(async () => {
       const res = await toggleTemplateActive(id, !active)
       if (res?.error) toast.error(res.error)
-      else toast.success(!active ? 'Template activated' : 'Template paused')
+      else {
+        toast.success(!active ? 'Template activated' : 'Template paused')
+        router.refresh()
+      }
+    })
+  }
+
+  const handleDelete = (id: string, title: string) => {
+    if (!confirm(`Delete “${title}”? Any tasks already created from it will remain, but will no longer be linked to this schedule.`)) return
+    startTransition(async () => {
+      const res = await deleteTemplate(id)
+      if (res?.error) toast.error(res.error)
+      else {
+        toast.success('Schedule deleted')
+        router.refresh()
+      }
     })
   }
 
@@ -308,12 +348,13 @@ function SiteSection({
               {editingId === t.id ? (
                 <div className="p-3">
                   <TemplateForm
-                    siteId={site.id}
                     buildings={site.buildings}
+                    categories={categories}
                     initial={{
                       title: t.title,
                       description: t.description ?? '',
                       building_id: t.building_id ?? '',
+                      category_id: t.category_id ?? '',
                       priority: t.priority,
                       frequency: t.frequency,
                       frequency_days: t.frequency_days?.toString() ?? '',
@@ -336,19 +377,38 @@ function SiteSection({
                       {t.is_compliance && (
                         <span className="text-xs px-1.5 py-0.5 bg-purple-100 text-purple-700 rounded-full">Compliance</span>
                       )}
+                      {t.category_id && (
+                        <span className="text-xs px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-full">
+                          {categories.find(category => category.id === t.category_id)?.name ?? 'Category'}
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <div className="flex flex-wrap items-center gap-2 mt-0.5">
                       <span className="text-xs text-gray-400">
                         {FREQ_LABELS[t.frequency] ?? t.frequency}
                         {t.frequency === 'custom' && t.frequency_days ? ` (${t.frequency_days}d)` : ''}
                       </span>
                       <span className="text-xs text-gray-300">·</span>
                       <span className="text-xs text-gray-400">{t.notice_days}d notice</span>
+                      {t.building_id && site.buildings.find(building => building.id === t.building_id) && (
+                        <>
+                          <span className="text-xs text-gray-300">·</span>
+                          <span className="text-xs text-gray-400">{site.buildings.find(building => building.id === t.building_id)?.name}</span>
+                        </>
+                      )}
                       {t.assign_to_role && (
                         <>
                           <span className="text-xs text-gray-300">·</span>
                           <span className="text-xs text-gray-400 capitalize">{t.assign_to_role.replace(/_/g, ' ')}</span>
                         </>
+                      )}
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-gray-400">
+                      <span>Next task: {t.next_generate_at
+                        ? new Date(t.next_generate_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+                        : 'Not scheduled'}</span>
+                      {t.last_generated_at && (
+                        <span>Last created: {new Date(t.last_generated_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                       )}
                     </div>
                   </div>
@@ -359,6 +419,15 @@ function SiteSection({
                       className="h-7 w-7 p-0 text-gray-400 hover:text-gray-700"
                     >
                       <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost" size="sm"
+                      onClick={() => handleDelete(t.id, t.title)}
+                      className="h-7 w-7 p-0 text-gray-400 hover:text-red-600"
+                      title="Delete schedule"
+                      aria-label={`Delete schedule ${t.title}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                     <Button
                       variant="ghost" size="sm"
@@ -378,8 +447,8 @@ function SiteSection({
           {adding ? (
             <div className="p-3">
               <TemplateForm
-                siteId={site.id}
                 buildings={site.buildings}
+                categories={categories}
                 onSave={handleAdd}
                 onCancel={() => setAdding(false)}
               />
@@ -399,7 +468,7 @@ function SiteSection({
   )
 }
 
-export function MaintenanceTemplatesManager({ sites }: Props) {
+export function MaintenanceTemplatesManager({ sites, categories }: Props) {
   if (sites.length === 0) {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-xl p-6 text-center text-sm text-gray-500">
@@ -411,7 +480,7 @@ export function MaintenanceTemplatesManager({ sites }: Props) {
   return (
     <div className="space-y-3">
       {sites.map(site => (
-        <SiteSection key={site.id} site={site} />
+        <SiteSection key={site.id} site={site} categories={categories} />
       ))}
     </div>
   )

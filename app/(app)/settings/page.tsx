@@ -5,7 +5,7 @@ import { getCurrentProfile } from '@/lib/supabase/helpers'
 import { SiteQRCard } from '@/components/settings/SiteQRCard'
 import { BuildingsManager } from '@/components/settings/BuildingsManager'
 import { MaintenanceTemplatesManager } from '@/components/settings/MaintenanceTemplatesManager'
-import type { Site, Building, MaintenanceTemplate } from '@/lib/supabase/types'
+import type { Site, Building, MaintenanceTemplate, AssetCategory } from '@/lib/supabase/types'
 
 export default async function SettingsPage() {
   const profile = await getCurrentProfile()
@@ -55,12 +55,13 @@ export default async function SettingsPage() {
 
   // Fetch maintenance templates for template admins
   let sitesWithTemplates: (Site & { buildings: Building[]; templates: MaintenanceTemplate[] })[] = []
+  let templateCategories: AssetCategory[] = []
   if (isTemplateAdmin) {
-    const { data: templatesData } = await supabase
-      .from('maintenance_templates')
-      .select('*')
-      .in('site_id', sites.map(s => s.id))
-      .order('title')
+    const [{ data: templatesData }, { data: categoriesData }] = await Promise.all([
+      supabase.from('maintenance_templates').select('*').in('site_id', sites.map(s => s.id)).order('title'),
+      supabase.from('asset_categories').select('*').order('name'),
+    ])
+    templateCategories = (categoriesData ?? []) as AssetCategory[]
     const templatesBySite = (templatesData ?? []).reduce<Record<string, MaintenanceTemplate[]>>((acc, t) => {
       if (!acc[t.site_id]) acc[t.site_id] = []
       acc[t.site_id].push(t)
@@ -140,7 +141,7 @@ export default async function SettingsPage() {
           <p className="text-sm text-gray-500 mb-4">
             Define recurring maintenance schedules. Tasks are auto-generated ahead of their due date so the right person has time to act.
           </p>
-          <MaintenanceTemplatesManager sites={sitesWithTemplates} />
+          <MaintenanceTemplatesManager sites={sitesWithTemplates} categories={templateCategories} />
         </section>
       )}
 

@@ -55,6 +55,11 @@ export async function addTemplate(data: {
   if (!['ast_lead', 'safety_officer'].includes(profile.role)) {
     return { error: 'Not authorised' }
   }
+  if (!data.title.trim()) return { error: 'A title is required' }
+  if (data.frequency === 'custom' && (!data.frequency_days || data.frequency_days < 1)) {
+    return { error: 'Custom frequency must be at least one day' }
+  }
+  if (data.notice_days < 0) return { error: 'Notice days cannot be negative' }
 
   const supabase = await createClient()
 
@@ -80,6 +85,7 @@ export async function addTemplate(data: {
   if (error) return { error: error.message }
 
   revalidatePath('/settings')
+  revalidatePath('/schedules')
   return { success: true, id: template.id }
 }
 
@@ -97,14 +103,45 @@ export async function updateTemplate(
   }
 
   const supabase = await createClient()
+  const { data: existing, error: fetchError } = await supabase
+    .from('maintenance_templates')
+    .select('frequency, frequency_days, notice_days')
+    .eq('id', id)
+    .single()
+  if (fetchError || !existing) return { error: fetchError?.message ?? 'Schedule not found' }
+
+  if (data.frequency === 'custom' && (!data.frequency_days || data.frequency_days < 1)) {
+    return { error: 'Custom frequency must be at least one day' }
+  }
+  if (data.notice_days !== undefined && data.notice_days < 0) {
+    return { error: 'Notice days cannot be negative' }
+  }
+
+  const frequency = data.frequency ?? existing.frequency
+  const frequencyDays = data.frequency_days ?? existing.frequency_days
+  const noticeDays = data.notice_days ?? existing.notice_days
+  const recurrenceDays = frequency === 'custom'
+    ? (frequencyDays ?? 365)
+    : getFrequencyDays({ frequency: frequency as any, frequency_days: frequencyDays } as any)
+  const scheduleChanged = data.frequency !== undefined
+    || data.frequency_days !== undefined
+    || data.notice_days !== undefined
+
   const { error } = await supabase
     .from('maintenance_templates')
-    .update({ ...data, updated_at: new Date().toISOString() })
+    .update({
+      ...data,
+      ...(scheduleChanged ? {
+        next_generate_at: new Date(Date.now() + (recurrenceDays - noticeDays) * 86400000).toISOString(),
+      } : {}),
+      updated_at: new Date().toISOString(),
+    })
     .eq('id', id)
 
   if (error) return { error: error.message }
 
   revalidatePath('/settings')
+  revalidatePath('/schedules')
   return { success: true }
 }
 
@@ -126,6 +163,29 @@ export async function toggleTemplateActive(id: string, active: boolean) {
 
   if (error) return { error: error.message }
   revalidatePath('/settings')
+  revalidatePath('/schedules')
+  return { success: true }
+}
+
+export async function deleteTemplate(id: string) {
+  const profile = await getCurrentProfile()
+  if (!profile) return { error: 'Not authenticated' }
+  if (!['ast_lead', 'safety_officer'].includes(profile.role)) {
+    return { error: 'Not authorised' }
+  }
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('maintenance_templates')
+    .delete()
+    .eq('id', id)
+    .select('id')
+
+  if (error) return { error: error.message }
+  if (!data?.length) return { error: 'Schedule not found or you do not have permission to delete it' }
+
+  revalidatePath('/settings')
+  revalidatePath('/schedules')
   return { success: true }
 }
 
