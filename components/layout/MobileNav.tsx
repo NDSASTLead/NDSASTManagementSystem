@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ClipboardList, PlusCircle, ShieldCheck, Users, Settings, AlertTriangle } from 'lucide-react'
+import { LayoutDashboard, ClipboardList, PlusCircle, ShieldCheck, Users, Settings, AlertTriangle, BarChart3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Role } from '@/lib/supabase/types'
 
@@ -21,6 +21,9 @@ export function MobileNav({ role }: MobileNavProps) {
       : []),
     ...(['safety_officer', 'ast_member', 'ast_lead', 'trustee'].includes(role)
       ? [{ href: '/safety', label: 'Safety', icon: AlertTriangle }]
+      : []),
+    ...(['ast_member', 'ast_lead', 'trustee'].includes(role)
+      ? [{ href: '/reports', label: 'Reports', icon: BarChart3 }]
       : []),
     ...(['responsible_person', 'safety_officer', 'ast_member', 'ast_lead', 'trustee'].includes(role)
       ? [{ href: '/compliance', label: 'Compliance', icon: ShieldCheck }]
