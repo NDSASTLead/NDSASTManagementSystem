@@ -30,7 +30,11 @@ export function getNextDue(
   obligation: ComplianceObligation,
   latestRecord: ComplianceRecord | null | undefined,
 ): Date | null {
-  if (!latestRecord) return null
+  if (!latestRecord) {
+    return obligation.initial_due_date
+      ? new Date(`${obligation.initial_due_date}T00:00:00Z`)
+      : null
+  }
   const days = getFrequencyDays(obligation)
   const completed = new Date(latestRecord.completed_at)
   const next = new Date(completed.getTime() + days * 24 * 60 * 60 * 1000)
@@ -39,7 +43,7 @@ export function getNextDue(
 
 // ============================================================
 // RAG calculation
-// Red:   no records, OR overdue, OR within red_days of due
+// Red:   overdue, OR within red_days of due
 // Amber: within notice_days of due (but not red)
 // Green: otherwise
 // ============================================================
@@ -48,8 +52,6 @@ export function calculateRAG(
   obligation: ComplianceObligation,
   latestRecord: ComplianceRecord | null | undefined,
 ): RAGStatus {
-  if (!latestRecord) return 'red'
-
   const nextDue = getNextDue(obligation, latestRecord)
   if (!nextDue) return 'unknown'
 

@@ -57,11 +57,9 @@ export async function runOverdueChecks(): Promise<{ tasksNotified: number; compl
       : null
 
     const freqDays = ob.frequency_days ?? frequencyToDays(ob.frequency)
-    if (!freqDays) continue
-
     const nextDue = lastDone
-      ? new Date(lastDone.getTime() + freqDays * 86400000)
-      : null
+      ? (freqDays ? new Date(lastDone.getTime() + freqDays * 86400000) : null)
+      : (ob.initial_due_date ? new Date(`${ob.initial_due_date}T00:00:00Z`) : null)
 
     if (nextDue && nextDue < new Date()) {
       overdueObligations.push({ ...ob, next_due_at: nextDue.toISOString(), rag: 'red' })

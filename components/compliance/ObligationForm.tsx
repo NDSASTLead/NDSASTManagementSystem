@@ -44,6 +44,8 @@ const OWNER_ROLES = [
 export function ObligationForm({ sites, buildings = [], defaultSiteId, obligation, onSuccess, profiles = [] }: ObligationFormProps) {
   const [isPending, startTransition] = useTransition()
   const [frequency, setFrequency] = useState(obligation?.frequency ?? 'monthly')
+  const [noticeDays, setNoticeDays] = useState(String(obligation?.notice_days ?? 14))
+  const [redDays, setRedDays] = useState(String(obligation?.red_days ?? 0))
   const [selectedBuildingIds, setSelectedBuildingIds] = useState<string[]>(
     // populated from existing obligation if editing
     []
@@ -63,6 +65,13 @@ export function ObligationForm({ sites, buildings = [], defaultSiteId, obligatio
     e.preventDefault()
     setError(null)
     const fd = new FormData(e.currentTarget)
+    const noticeDaysValue = Number(noticeDays)
+    const redDaysValue = Number(redDays)
+    if (!Number.isInteger(noticeDaysValue) || !Number.isInteger(redDaysValue)
+      || noticeDaysValue < 0 || redDaysValue < 0 || noticeDaysValue <= redDaysValue) {
+      setError('Amber warning must be greater than the red warning.')
+      return
+    }
 
     const data = {
       site_id:         fd.get('site_id') as string,
@@ -70,10 +79,11 @@ export function ObligationForm({ sites, buildings = [], defaultSiteId, obligatio
       category:        fd.get('category') as string,
       description:     (fd.get('description') as string) || null,
       legislation_ref: (fd.get('legislation_ref') as string) || null,
+      initial_due_date: fd.get('initial_due_date') as string,
       frequency,
       frequency_days:  frequency === 'custom' ? parseInt(fd.get('frequency_days') as string) || null : null,
-      notice_days:     parseInt(fd.get('notice_days') as string) || 14,
-      red_days:        parseInt(fd.get('red_days') as string) || 0,
+      notice_days:     noticeDaysValue,
+      red_days:        redDaysValue,
       owner_role:      (fd.get('owner_role') as string | null) === '_none' ? null : ((fd.get('owner_role') as string) || null),
       owner_profile_id:(fd.get('owner_profile_id') as string | null) === '_none' ? null : ((fd.get('owner_profile_id') as string) || null),
       notes:           (fd.get('notes') as string) || null,
@@ -176,6 +186,18 @@ export function ObligationForm({ sites, buildings = [], defaultSiteId, obligatio
             className="mt-1" />
         </div>
 
+        {/* Initial due date */}
+        <div>
+          <Label htmlFor="initial_due_date">First due date *</Label>
+          <Input
+            id="initial_due_date" name="initial_due_date"
+            type="date" required
+            defaultValue={obligation?.initial_due_date ?? ''}
+            className="mt-1"
+          />
+          <p className="mt-1 text-xs text-gray-500">The recurrence schedule starts from this date until the first completion is recorded.</p>
+        </div>
+
         {/* Frequency */}
         <div>
           <Label>Frequency *</Label>
@@ -212,9 +234,11 @@ export function ObligationForm({ sites, buildings = [], defaultSiteId, obligatio
           <Input
             id="notice_days" name="notice_days"
             type="number" min="0"
-            defaultValue={obligation?.notice_days ?? 14}
+            value={noticeDays}
+            onChange={e => setNoticeDays(e.target.value)}
             className="mt-1"
           />
+          <p className="mt-1 text-xs text-gray-500">Must be greater than the red warning period.</p>
         </div>
 
         {/* Red days */}
@@ -226,7 +250,8 @@ export function ObligationForm({ sites, buildings = [], defaultSiteId, obligatio
           <Input
             id="red_days" name="red_days"
             type="number" min="0"
-            defaultValue={obligation?.red_days ?? 0}
+            value={redDays}
+            onChange={e => setRedDays(e.target.value)}
             className="mt-1"
           />
         </div>

@@ -20,11 +20,12 @@ import type {
 //
 // Logic:
 //  1. Fetch the obligation + its latest completion record.
-//  2. Calculate next_due from that record.
+//  2. Calculate next_due from the latest record, or the initial due date
+//     if the obligation has not been completed yet.
 //  3. Find any existing open compliance task linked to the obligation.
 //  4a. If next_due exists AND task exists  → update due_date + title.
 //  4b. If next_due exists AND no task      → create new task.
-//  4c. If no next_due (no records)         → nothing to do.
+//  4c. If no next_due                      → nothing to do.
 // ============================================================
 export async function scheduleNextComplianceTask(obligationId: string) {
   // Use service client so this works regardless of the calling
@@ -35,7 +36,7 @@ export async function scheduleNextComplianceTask(obligationId: string) {
   const { data: obligation } = await supabase
     .from('compliance_obligations')
     .select(`
-      id, name, site_id, frequency, frequency_days,
+      id, name, site_id, frequency, frequency_days, initial_due_date,
       legislation_ref, owner_profile_id, category
     `)
     .eq('id', obligationId)
@@ -52,12 +53,9 @@ export async function scheduleNextComplianceTask(obligationId: string) {
 
   const latestRecord = records?.[0] ?? null
 
-  // No records yet — nothing to schedule
-  if (!latestRecord) return
-
   const nextDue = getNextDue(
     obligation as ComplianceObligation,
-    latestRecord as ComplianceRecord,
+    latestRecord as ComplianceRecord | null,
   )
   if (!nextDue) return
 
@@ -200,6 +198,7 @@ export async function addComplianceObligation(data: {
   category: string
   description?: string | null
   legislation_ref?: string | null
+  initial_due_date: string
   frequency: string
   frequency_days?: number | null
   notice_days: number
@@ -215,6 +214,12 @@ export async function addComplianceObligation(data: {
   if (!profile) return { error: 'Not authenticated' }
   if (!['ast_lead', 'safety_officer'].includes(profile.role)) {
     return { error: 'Not authorised' }
+  }
+  if (!isValidDateOnly(data.initial_due_date)) {
+    return { error: 'A valid first due date is required.' }
+  }
+  if (!isValidWarningWindow(data.notice_days, data.red_days)) {
+    return { error: 'Amber warning must be greater than the red warning.' }
   }
 
   const supabase = await createClient()
@@ -241,8 +246,23 @@ export async function addComplianceObligation(data: {
     if (linkError) return { error: linkError.message }
   }
 
+  await scheduleNextComplianceTask(obligation.id)
+
   revalidatePath('/compliance')
   return { success: true, id: obligation.id }
+}
+
+function isValidDateOnly(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+  const parsed = new Date(`${value}T00:00:00Z`)
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value
+}
+
+function isValidWarningWindow(noticeDays: number, redDays: number): boolean {
+  return Number.isInteger(noticeDays)
+    && Number.isInteger(redDays)
+    && redDays >= 0
+    && noticeDays > redDays
 }
 
 // ============================================================
@@ -255,6 +275,7 @@ export async function updateComplianceObligation(
     category: string
     description: string | null
     legislation_ref: string | null
+    initial_due_date: string
     frequency: string
     frequency_days: number | null
     notice_days: number
@@ -272,8 +293,25 @@ export async function updateComplianceObligation(
   if (!['ast_lead', 'safety_officer'].includes(profile.role)) {
     return { error: 'Not authorised' }
   }
+  if (data.initial_due_date !== undefined && !isValidDateOnly(data.initial_due_date)) {
+    return { error: 'A valid first due date is required.' }
+  }
 
   const supabase = await createClient()
+  if (data.notice_days !== undefined || data.red_days !== undefined) {
+    const { data: existing, error: fetchError } = await supabase
+      .from('compliance_obligations')
+      .select('notice_days, red_days')
+      .eq('id', id)
+      .single()
+    if (fetchError || !existing) return { error: 'Obligation not found.' }
+    const noticeDays = data.notice_days ?? existing.notice_days
+    const redDays = data.red_days ?? existing.red_days
+    if (!isValidWarningWindow(noticeDays, redDays)) {
+      return { error: 'Amber warning must be greater than the red warning.' }
+    }
+  }
+
   const { building_ids, ...obligationData } = data
 
   const { error } = await supabase
@@ -282,6 +320,10 @@ export async function updateComplianceObligation(
     .eq('id', id)
 
   if (error) return { error: error.message }
+
+  if (data.initial_due_date !== undefined) {
+    await scheduleNextComplianceTask(id)
+  }
 
   // Replace building links if provided
   if (building_ids !== undefined) {

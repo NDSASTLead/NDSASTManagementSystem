@@ -159,6 +159,7 @@ export interface ComplianceObligation {
   description: string | null
   category: ComplianceCategory
   legislation_ref: string | null
+  initial_due_date: string
   frequency: ComplianceFrequency
   frequency_days: number | null
   notice_days: number
