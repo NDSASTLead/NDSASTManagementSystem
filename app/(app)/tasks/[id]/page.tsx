@@ -30,7 +30,8 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
       building:buildings(id, name),
       category:asset_categories(id, name),
       assigned_profile:profiles!tasks_assigned_to_fkey(id, full_name, display_name, profile_picture_path, email),
-      created_profile:profiles!tasks_created_by_fkey(id, full_name, display_name)
+      created_profile:profiles!tasks_created_by_fkey(id, full_name, display_name),
+      reviewed_profile:profiles!tasks_reviewed_by_fkey(id, full_name, display_name)
     `)
     .eq('id', id)
     .single()
@@ -242,6 +243,12 @@ export default async function TaskDetailPage({ params }: { params: Promise<{ id:
             <div className="pt-2 border-t border-gray-100 bg-green-50 rounded-lg px-3 py-2">
               <p className="text-xs text-green-700 font-medium mb-1">Completion notes</p>
               <p className="text-sm text-gray-700">{typedTask.completion_notes}</p>
+            </div>
+          )}
+
+          {typedTask.reviewed_profile && (
+            <div className="text-sm text-gray-500">
+              Reviewed by: {getDisplayName(typedTask.reviewed_profile)}
             </div>
           )}
         </CardContent>

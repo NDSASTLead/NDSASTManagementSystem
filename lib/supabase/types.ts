@@ -143,6 +143,7 @@ export interface TaskWithRelations extends Task {
   category?: AssetCategory | null
   assigned_profile?: Profile | null
   created_profile?: Profile | null
+  reviewed_profile?: Profile | null
   comments?: TaskComment[]
   attachments?: TaskAttachment[]
 }

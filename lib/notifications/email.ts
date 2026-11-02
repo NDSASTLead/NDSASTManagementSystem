@@ -2,8 +2,7 @@ import { Resend } from 'resend'
 import { createClient } from '@supabase/supabase-js'
 import type { Task, Profile, ComplianceObligationWithStatus } from '@/lib/supabase/types'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const FROM = process.env.RESEND_FROM_EMAIL ?? 'AST <noreply@ndsmaintenance.org.uk>'
+const FROM = process.env.RESEND_FROM_EMAIL || 'AST <noreply@ndsmaintenance.org.uk>'
 const APP_URL = (process.env.NEXT_PUBLIC_APP_URL ?? '').replace(/\/+$/, '')
 
 // ---- helpers ------------------------------------------------
@@ -59,10 +58,12 @@ function baseLayout(title: string, body: string) {
 }
 
 async function send(to: string | string[], subject: string, html: string) {
-  if (!process.env.RESEND_API_KEY) return
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey) return
   const toArr = Array.isArray(to) ? to : [to]
   if (!toArr.length) return
   try {
+    const resend = new Resend(apiKey)
     await resend.emails.send({ from: FROM, to: toArr, subject, html })
   } catch (err) {
     console.error('[email] send error:', err)

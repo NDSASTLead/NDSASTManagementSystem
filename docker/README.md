@@ -25,6 +25,12 @@ When installation completes, the script prints the app and Supabase addresses. T
 (cd docker/supabase && sh run.sh start)
 ```
 
+Outgoing email is optional in local development. Without `RESEND_API_KEY`, email notifications are skipped and task assignment still succeeds. To enable email, add `RESEND_API_KEY` and `RESEND_FROM_EMAIL` to `docker/supabase/.env`, then recreate the app container:
+
+```bash
+(cd docker/supabase && docker compose up -d --force-recreate app)
+```
+
 ## Local Auth user administration
 
 The local development stack includes a server-side helper for setting a user's password or creating a user. It uses the service role key from `docker/supabase/.env`; it never asks for or prints that key. Password input is hidden.

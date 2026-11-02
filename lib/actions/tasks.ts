@@ -189,22 +189,26 @@ export async function updateTaskStatus(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  const completedAt = new Date().toISOString()
-  const update: Record<string, unknown> = { status }
-
-  if (status === 'complete') {
-    update.completed_at = completedAt
-    update.completed_by = user.id
-    if (completionNotes) update.completion_notes = completionNotes
-  }
-
   // Fetch the task — check both direct compliance_obligation_id (new path)
   // and template → compliance_obligation (legacy path)
   const { data: task } = await supabase
     .from('tasks')
-    .select('id, template_id, compliance_obligation_id, maintenance_templates(id, compliance_obligation_id)')
+    .select('id, status, template_id, compliance_obligation_id, maintenance_templates(id, compliance_obligation_id)')
     .eq('id', taskId)
     .single()
+
+  const completedAt = new Date().toISOString()
+  const isReviewSignOff = task?.status === 'pending_review' && status === 'complete'
+  const update: Record<string, unknown> = { status }
+
+  if (isReviewSignOff) {
+    // Keep the original completion details and record who signed off the work.
+    update.reviewed_by = user.id
+  } else if (status === 'complete') {
+    update.completed_at = completedAt
+    update.completed_by = user.id
+    if (completionNotes) update.completion_notes = completionNotes
+  }
 
   const { error: taskError } = await supabase
     .from('tasks')
